@@ -19,8 +19,8 @@ extra-source-files:  CHANGELOG.md
 
 executable stocks-cli
   main-is:             Main.hs
-  other-modules:       CLI
+  other-modules:       CLI, Types
   -- other-extensions:
-  build-depends:       base >=4.14 && <4.15
+  build-depends:       base >=4.14 && <4.15, extra, ghc
   hs-source-dirs:      ., src
   default-language:    Haskell2010
