@@ -14,7 +14,7 @@ runCLI :: IO ()
 runCLI = do
     putStrLn ("Technical Analysis CLI")
     putStrLn ("\"help\" for list of commands")
-    getAndRunLinesForever (CLIState { charts = Nothing })
+    getAndRunLinesForever (CLIState { stocks = Nothing })
 
 getAndRunLinesForever :: CLIState -> IO ()    
 getAndRunLinesForever state = do
@@ -24,7 +24,7 @@ getAndRunLinesForever state = do
 runLine :: CLIState -> String -> IO CLIState
 runLine state cmdStr =
     let 
-        parsedCmd = commands <&> parse <&> ($cmdStr) & firstJusts <&> ($state)
+        parsedCmd = commands & firstCommandMatch cmdStr <&> effect <&> ($state)
         printError = putStrLn "Unrecognized command\n\"help\" for list of commands" >> pure state
     in
         parsedCmd `orElse` printError
@@ -32,14 +32,22 @@ runLine state cmdStr =
 commands :: [CLICommand]
 commands = [
     CLICommand { 
-        description = "\"help\": Prints the list of available commands", 
-        parse = (\str -> 
-            if (str & trim & lower) == "help" 
-            then Just (commands <&> description <&> putStrLn & fold & ($>))
-            else Nothing) },
+        name = ["help"],
+        description = "Prints the list of available commands", 
+        effect = commands <&> helpText <&> putStrLn & fold & ($>) },
     CLICommand { 
-        description = "\"quit\": Terminates the application", 
-        parse = (\str -> 
-            if (str & trim & lower) == "quit" 
-            then Just (exitSuccess $>)
-            else Nothing) } ]
+        name = ["quit"],
+        description = "Terminates the application", 
+        effect = (exitSuccess $>) }, 
+    CLICommand { 
+        name = ["fetch", "eodhd"],
+        description = "Fetches daily charts data from eodhistoricaldata.com", 
+        effect = (exitSuccess $>) } ]
+
+-- 
+helpText :: CLICommand -> String
+helpText = undefined
+
+-- Finds the first command that matches the user's input
+firstCommandMatch :: String -> [CLICommand] -> Maybe CLICommand
+firstCommandMatch = undefined
