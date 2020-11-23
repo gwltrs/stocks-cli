@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 167647571f789dcec9580a78fb4bd55819b9e9e1d68da2f98a1224c1e09d5e10
+-- hash: a20f2ab00ef8bc884f4314883c4324a7191d72245dccf1788058173decb934ba
 
 name:           stocks-cli
 version:        0.1.0.0
@@ -28,6 +28,7 @@ source-repository head
 library
   exposed-modules:
       CLI
+      CLICommands
       Types
   other-modules:
       Paths_stocks_cli
@@ -61,6 +62,7 @@ test-suite stocks-cli-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      CLISpec
       Paths_stocks_cli
   hs-source-dirs:
       test

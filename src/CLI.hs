@@ -1,53 +1,46 @@
 module CLI where
 
-import Types
-import Control.Monad (forever)
-import System.IO
+import System.IO (hFlush, stdout)
 import Data.List.Extra (trim, lower)
 import Data.Function ((&))
-import Data.Functor ((<&>), ($>))
+import Data.Functor ((<&>))
 import Maybes (firstJusts, orElse)
-import System.Exit (exitSuccess)
-import Data.Foldable (fold)
+import Data.Foldable (fold, find)
 
+import Types
+import CLICommands (helpName, cliCommands)
+
+-- Main entry point for the CLI
 runCLI :: IO ()
-runCLI = do
-    putStrLn ("Technical Analysis CLI")
-    putStrLn ("\"help\" for list of commands")
-    getAndRunLinesForever (CLIState { stocks = Nothing })
+runCLI =
+    let
+        initialState = 0
+        makeNewState state = do
+            putStr ">>> " >> hFlush stdout
+            getLine >>= runLine state
+    in do
+        putStrLn ("Technical Analysis CLI")
+        putStrLn ("\"" ++ unwords helpName ++ "\" for list of commands")
+        foreverWithState makeNewState initialState
 
-getAndRunLinesForever :: CLIState -> IO ()    
-getAndRunLinesForever state = do
-    (putStr ">>> " >> hFlush stdout)
-    getLine >>= runLine state >>= getAndRunLinesForever
-
+-- Parses the user's input and runs the associated state-modifying, effect-producing command
+-- or prints an error message and leaves the state unchanged.
 runLine :: CLIState -> String -> IO CLIState
 runLine state cmdStr =
     let 
-        parsedCmd = commands & firstCommandMatch cmdStr <&> effect <&> ($state)
+        parsedCmd = firstCommandMatch cliCommands cmdStr <&> effect <&> ($state)
         printError = putStrLn "Unrecognized command\n\"help\" for list of commands" >> pure state
     in
         parsedCmd `orElse` printError
 
-commands :: [CLICommand]
-commands = [
-    CLICommand { 
-        name = ["help"],
-        description = "Prints the list of available commands", 
-        effect = commands <&> helpText <&> putStrLn & fold & ($>) },
-    CLICommand { 
-        name = ["quit"],
-        description = "Terminates the application", 
-        effect = (exitSuccess $>) }, 
-    CLICommand { 
-        name = ["fetch", "eodhd"],
-        description = "Fetches daily charts data from eodhistoricaldata.com", 
-        effect = (exitSuccess $>) } ]
+-- Finds the first command that matches the user's input.
+-- Is case insensitve and ignores superfluous whitespace.
+firstCommandMatch :: [CLICommand] -> String -> Maybe CLICommand
+firstCommandMatch commands userInput =
+    let isMatch cmd = (userInput & lower & words) == name cmd
+    in find isMatch commands
 
--- 
-helpText :: CLICommand -> String
-helpText = undefined
-
--- Finds the first command that matches the user's input
-firstCommandMatch :: String -> [CLICommand] -> Maybe CLICommand
-firstCommandMatch = undefined
+-- Stateful version of Control.Monad.forever. 
+foreverWithState :: (a -> IO a) -> a -> IO ()
+foreverWithState makeNew init =
+    makeNew init >>= foreverWithState makeNew
