@@ -5,7 +5,8 @@ import Data.Function ((&))
 import Data.Functor ((<&>), ($>))
 import Data.Foldable (fold)
 
-import Types
+import Types (CLICommand(..))
+import Prettify (prettifyCmd)
 
 helpName :: [String]
 helpName = ["help"]
@@ -15,15 +16,13 @@ cliCommands = [
     CLICommand { 
         name = helpName,
         description = "Prints the list of available commands", 
-        effect = 
-            let prettyText cmd = (cmd & name & unwords) ++ ": " ++ description cmd
-            in cliCommands <&> prettyText <&> putStrLn & fold & ($>) },
+        effect = cliCommands <&> prettifyCmd <&> putStrLn & fold & ($>) },
     CLICommand { 
         name = ["quit"],
         description = "Terminates the application", 
         effect = (exitSuccess $>) },
     CLICommand { 
-        name = ["peek"],
+        name = ["show", "data"],
         description = "Prints the state", 
         effect = (\s -> (s & show & putStrLn) >> pure s) },
     CLICommand { 
