@@ -29,7 +29,8 @@ runLine :: CLIState -> String -> IO CLIState
 runLine state cmdStr =
     let 
         parsedCmd = firstCommandMatch cliCommands cmdStr <&> effect <&> ($state)
-        printError = putStrLn "Unrecognized command\n\"help\" for list of commands" >> pure state
+        errorString = "Unrecognized command\n\"" ++ unwords helpName ++ "\" for list of commands"
+        printError = putStrLn errorString >> pure state
     in
         parsedCmd `orElse` printError
 
