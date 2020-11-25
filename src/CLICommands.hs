@@ -20,12 +20,13 @@ cliCommands = [
     CLICommand { 
         name = ["quit"],
         description = "Terminates the application", 
-        effect = (exitSuccess $>) },
-    CLICommand { 
-        name = ["show", "data"],
-        description = "Prints the state", 
-        effect = (\s -> (s & show & putStrLn) >> pure s) },
-    CLICommand { 
-        name = ["add"],
-        description = "Increments the state", 
-        effect = (\s -> pure (s + 1)) } ]
+        effect = (exitSuccess $>) }
+    -- CLICommand { 
+    --     name = ["show", "data"],
+    --     description = "Prints the state", 
+    --     effect = (\s -> (s & show & putStrLn) >> pure s) },
+    -- CLICommand { 
+    --     name = ["add"],
+    --     description = "Increments the state", 
+    --     effect = (\s -> pure (s + 1)) }
+        ]

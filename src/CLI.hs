@@ -7,14 +7,14 @@ import Data.Functor ((<&>))
 import Maybes (firstJusts, orElse)
 import Data.Foldable (fold, find)
 
-import Types (CLICommand(name, effect), CLIState)
+import Types (CLICommand(name, effect), CLIState(..))
 import CLICommands (helpName, cliCommands)
 
 -- Main entry point for the CLI
 runCLI :: IO ()
 runCLI =
     let
-        initialState = 0
+        initialState = CLIState { stocks = [] }
         makeNewState state = do
             putStr ">>> " >> hFlush stdout
             getLine >>= runLine state

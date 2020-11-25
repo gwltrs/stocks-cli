@@ -11,13 +11,13 @@ data CLICommand = CLICommand {
     effect :: CLIState -> IO CLIState
 }
 
-type CLIState = Int
--- data CLIState = CLIState {
---     stocks :: Maybe [Stock]
--- }
+data CLIState = CLIState {
+    stocks :: [Stock]
+}
 
 data Stock = Stock {
     symbol :: String,
+    -- Days should be in ascending order according to date
     days :: [Day]
 }
 
