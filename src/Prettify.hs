@@ -13,16 +13,28 @@ prettifyCmd cmd = "\"" ++ (cmd & name & unwords) ++ "\": " ++ description cmd
 
 -- User-visible description of the stocks.
 prettifyStocks :: [Stock] -> String
-prettifyStocks stocks = undefined
-    -- let
-    --     stocksWithDays = filter (notNull . days) stocks
-    --     earliestDate = stocks <&> days <&> head <&> date & foldr1 min
-    --     latestDate = stocks <&> days <&> last <&> date & foldr1 max
-
-    -- in
-    --     "asdf"
+prettifyStocks stocks =
+    let
+        stocksWithDays = filter (notNull . days) stocks
+        stocksLengthStr = stocksWithDays & length & show
+        earliestDate = stocks <&> days <&> head <&> date & foldr1 min & prettifyDate
+        latestDate = stocks <&> days <&> last <&> date & foldr1 max & prettifyDate
+    in
+        if notNull stocksWithDays
+        then
+            stocksLengthStr ++ " stocks from " ++ earliestDate ++ " to " ++ latestDate
+        else
+            "0 stocks"
 
 -- Converts date string from YYYYMMDD to MM/DD/YYYY
 -- Trims leading zeros from each component
 prettifyDate :: String -> String
-prettifyDate date = undefined
+prettifyDate date =
+    let 
+        trimLeadingZeros str = show (read str :: Int)
+        year = date & take 4 & trimLeadingZeros
+        month = date & drop 4 & take 2 & trimLeadingZeros
+        day = date & drop 6 & trimLeadingZeros
+    in
+        month ++ "/" ++ day ++ "/" ++ year
+        
