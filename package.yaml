@@ -25,6 +25,11 @@ dependencies:
 - QuickCheck
 - extra
 - ghc-lib-parser
+- aeson
+- bytestring
+- text
+- vector
+- scientific
 
 library:
   source-dirs: src
