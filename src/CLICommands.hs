@@ -46,7 +46,8 @@ cliCommands = [
             then putStrLn "No data" >> pure s
             else (putStr "Path: " >> hFlush stdout >> getLine)
                 >>= (flip writeFileSafely) (s & stocks & toStocksCompactJSON) 
-                <&> (<&> ("File write failed\n" ++))
-                <&> fromMaybe "Done"
+                <&> (\errStr -> case errStr of
+                    Just str -> "File write failed\n" ++ str
+                    Nothing -> "Done")
                 >>= putStrLn
                 >> pure s ) } ]
