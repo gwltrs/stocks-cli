@@ -13,7 +13,7 @@ import Data.Maybe (fromMaybe)
 import Types (CLICommand(..), CLIState(stocks))
 import Prettify (prettifyCmd, prettifyStocks)
 import TestStocks (testStocks)
-import StocksCompactJSON (toStocksCompactJSON)
+import StocksCompactJSON (toStocksCompactJSON, parseStocksCompactJSON)
 import SafeIO (writeFileSafely, readFileSafely, prompt)
 
 helpName :: [String]
@@ -35,11 +35,11 @@ cliCommands = [
         effect = (\s -> s & stocks & prettifyStocks & putStrLn >> pure s) },
     CLICommand { 
         name = ["data", "fetch", "sample"],
-        description = "Fetches the small, built-in stocks data set", 
+        description = "Fetches the small, built-in stocks data set",
         effect = (\s -> putStrLn "Done" >> pure s { stocks = testStocks }) },
-    CLICommand { 
+    CLICommand {
         name = ["data", "file", "save"],
-        description = "Saves the currently-loaded stocks data set to a file", 
+        description = "Saves the currently-loaded stocks data set to a file",
         effect = (\s ->
             if (s & stocks & length) == 0
             then putStrLn "No data" >> pure s
@@ -53,9 +53,12 @@ cliCommands = [
     CLICommand { 
         name = ["data", "file", "load"],
         description = "Loads a stocks data set from a file", 
-        effect = pure }
-                
-                
-                
-                
-        ]
+        effect = (\s ->
+            prompt "Path: " >>= readFileSafely
+                <&> (<&> parseStocksCompactJSON)
+                <&> either 
+                    (\readErr -> ("File read failed\n" ++ readErr, s))
+                    (\stocksMaybe -> case stocksMaybe of
+                        Just stocks -> ("Done", s { stocks = stocks })
+                        Nothing -> ("File isn't in the expected format", s))
+                >>= (\tup -> putStrLn (fst tup) >> pure (snd tup)) ) } ]
