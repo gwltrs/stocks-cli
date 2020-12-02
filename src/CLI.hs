@@ -1,6 +1,5 @@
 module CLI where
 
-import System.IO (hFlush, stdout)
 import Data.List.Extra (trim, lower)
 import Data.Function ((&))
 import Data.Functor ((<&>))
@@ -9,15 +8,14 @@ import Data.Foldable (fold, find)
 
 import Types (CLICommand(name, effect), CLIState(..))
 import CLICommands (helpName, cliCommands)
+import SafeIO (prompt)
 
 -- Main entry point for the CLI
 runCLI :: IO ()
 runCLI =
     let
         initialState = CLIState { stocks = [] }
-        makeNewState state = do
-            putStr ">>> " >> hFlush stdout
-            getLine >>= runLine state
+        makeNewState state = prompt ">>> " >>= runLine state
     in do
         putStrLn ("Technical Analysis CLI")
         putStrLn ("\"" ++ unwords helpName ++ "\" for list of commands")

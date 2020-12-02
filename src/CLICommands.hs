@@ -6,7 +6,6 @@ import Data.Function ((&))
 import Data.Functor ((<&>), ($>))
 import Data.Foldable (fold)
 import Data.Text.IO (writeFile)
-import System.IO (hFlush, stdout)
 import Control.Exception (SomeException, try)
 import Data.Typeable (typeOf)
 import Data.Maybe (fromMaybe)
@@ -15,7 +14,7 @@ import Types (CLICommand(..), CLIState(stocks))
 import Prettify (prettifyCmd, prettifyStocks)
 import TestStocks (testStocks)
 import StocksCompactJSON (toStocksCompactJSON)
-import SafeIO (writeFileSafely, WriteFileResult(..))
+import SafeIO (writeFileSafely, readFileSafely, prompt)
 
 helpName :: [String]
 helpName = ["help"]
@@ -40,14 +39,23 @@ cliCommands = [
         effect = (\s -> putStrLn "Done" >> pure s { stocks = testStocks }) },
     CLICommand { 
         name = ["data", "file", "save"],
-        description = "Saves the currently-loaded stocks to a file", 
+        description = "Saves the currently-loaded stocks data set to a file", 
         effect = (\s ->
             if (s & stocks & length) == 0
             then putStrLn "No data" >> pure s
-            else (putStr "Path: " >> hFlush stdout >> getLine)
+            else prompt "Path: "
                 >>= (flip writeFileSafely) (s & stocks & toStocksCompactJSON) 
                 <&> (\errStr -> case errStr of
                     Just str -> "File write failed\n" ++ str
                     Nothing -> "Done")
                 >>= putStrLn
-                >> pure s ) } ]
+                >> pure s ) },
+    CLICommand { 
+        name = ["data", "file", "load"],
+        description = "Loads a stocks data set from a file", 
+        effect = pure }
+                
+                
+                
+                
+        ]
