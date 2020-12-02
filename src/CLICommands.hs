@@ -58,7 +58,7 @@ cliCommands = [
                 <&> (<&> parseStocksCompactJSON)
                 <&> either 
                     (\readErr -> ("File read failed\n" ++ readErr, s))
-                    (\stocksMaybe -> case stocksMaybe of
-                        Just stocks -> ("Done", s { stocks = stocks })
-                        Nothing -> ("File isn't in the expected format", s))
+                    (maybe 
+                        ("File isn't in the expected format", s)
+                        (\stocks -> ("Done", s { stocks = stocks })))
                 >>= (\tup -> putStrLn (fst tup) >> pure (snd tup)) ) } ]
