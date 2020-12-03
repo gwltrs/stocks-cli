@@ -30,6 +30,8 @@ dependencies:
 - text
 - vector
 - scientific
+- wreq
+- lens
 
 library:
   source-dirs: src

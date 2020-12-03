@@ -9,12 +9,16 @@ import Data.Text.IO (writeFile)
 import Control.Exception (SomeException, try)
 import Data.Typeable (typeOf)
 import Data.Maybe (fromMaybe)
+import Network.Wreq (get, responseBody)
+import Control.Lens.Getter ((^.))
+import System.Environment (lookupEnv)
 
 import Types (CLICommand(..), CLIState(stocks))
 import Prettify (prettifyCmd, prettifyStocks)
 import TestStocks (testStocks)
 import StocksCompactJSON (toStocksCompactJSON, parseStocksCompactJSON)
 import SafeIO (writeFileSafely, readFileSafely, prompt)
+import Constants (eodhdAPIKeyEnvVar)
 
 helpName :: [String]
 helpName = ["help"]
@@ -37,6 +41,19 @@ cliCommands = [
         name = ["data", "fetch", "sample"],
         description = "Fetches the small, built-in stocks data set",
         effect = (\s -> putStrLn "Done" >> pure s { stocks = testStocks }) },
+    CLICommand { 
+        name = ["data", "fetch", "eodhd"],
+        description = "Fetches a stocks data set from",
+        effect = (\s -> do
+            apiKeyRes <- lookupEnv eodhdAPIKeyEnvVar
+            case apiKeyRes of
+                Nothing -> do
+                    putStrLn ("Couldn't find environment variable: " ++ eodhdAPIKeyEnvVar)
+                    pure s
+                Just apiKey -> do
+                    response <- get "https://cat-fact.herokuapp.com/facts"
+                    putStrLn (show response)
+                    pure s) },
     CLICommand {
         name = ["data", "file", "save"],
         description = "Saves the currently-loaded stocks data set to a file",

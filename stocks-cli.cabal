@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7060eec4ee05194aaa1676648363abe12cd70835af5be7568cf62c469a4439d9
+-- hash: 0d9b4e3cb4bfd07f8377f530fdde85bccd1c3cfd57d59ab8870ef2b8dd695b86
 
 name:           stocks-cli
 version:        0.1.0.0
@@ -29,6 +29,7 @@ library
   exposed-modules:
       CLI
       CLICommands
+      Constants
       Prettify
       SafeIO
       StocksCompactJSON
@@ -46,9 +47,11 @@ library
     , extra
     , ghc-lib-parser
     , hspec
+    , lens
     , scientific
     , text
     , vector
+    , wreq
   default-language: Haskell2010
 
 executable stocks-cli-exe
@@ -66,10 +69,12 @@ executable stocks-cli-exe
     , extra
     , ghc-lib-parser
     , hspec
+    , lens
     , scientific
     , stocks-cli
     , text
     , vector
+    , wreq
   default-language: Haskell2010
 
 test-suite stocks-cli-test
@@ -91,8 +96,10 @@ test-suite stocks-cli-test
     , extra
     , ghc-lib-parser
     , hspec
+    , lens
     , scientific
     , stocks-cli
     , text
     , vector
+    , wreq
   default-language: Haskell2010
