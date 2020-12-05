@@ -1,8 +1,21 @@
-module Types where
+{-# LANGUAGE TemplateHaskell #-}
+
+module Types (
+    CLICommand(..), 
+    CLIState(..), 
+    Stock(..),
+    Day(..),
+    YYYYMMDD,
+    yyyymmdd,
+    yyyymmddString
+) where
 
 import Test.QuickCheck
 import Data.Functor ((<&>))
 import Data.Function ((&))
+import Data.Coerce (coerce)
+import Data.Maybe (isJust, fromMaybe)
+import Text.Read (readMaybe)
 
 data CLICommand = CLICommand {
     -- Whitespace-delimited text the user enters to executed the command
@@ -32,13 +45,36 @@ instance Arbitrary Stock where
         return Stock { symbol = arbSymbol, days = arbDays }
 
 data Day = Day {
-    date :: String, -- YYYYMMDD
+    date :: String,
     open :: Float,
     high :: Float,
     low :: Float,
     close :: Float,
     volume :: Int
 } deriving (Eq, Show)
+
+newtype YYYYMMDD = YYYYMMDD String
+
+-- Smart constructor for YYYYMMDD.
+-- String argument must be exactly 8 characters long.
+-- Year component must be integer from 0 to 9999 inclusive.
+-- Month component must be integer from 1 to 12 inclusive. 
+-- Day component must be integer from 1 to 31 inclusive. 
+yyyymmdd :: String -> Maybe YYYYMMDD
+yyyymmdd str = 
+    let
+        parseInt s = readMaybe s :: Maybe Int 
+        between mn mx a = (mn <= a) && (a <= mx)
+        yyyyValid = str & take 4 & parseInt & isJust
+        mmValid = str & drop 4 & take 2 & parseInt <&> between 1 12 & fromMaybe False
+        ddValid = str & drop 6 & take 2 & parseInt <&> between 1 31 & fromMaybe False
+    in
+        if (length str == 8) && yyyyValid && mmValid && ddValid
+        then Just (YYYYMMDD str) 
+        else Nothing
+
+yyyymmddString :: YYYYMMDD -> String
+yyyymmddString (YYYYMMDD str) = str
 
 instance Arbitrary Day where
     arbitrary = 
