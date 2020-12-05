@@ -6,7 +6,7 @@ import Data.Functor ((<&>))
 import Data.Function ((&))
 
 import Generators (goodYYYYMMDDStr, badYYYYMMDDStr)
-import Types (yyyymmdd, YYYYMMDD(..), yyyymmddString)
+import Types (YYYYMMDD, ymd, ymdStr)
 
 typesTests :: SpecWith ()
 typesTests = do
@@ -14,10 +14,10 @@ typesTests = do
         it "should create YYYYMMDD when given valid string" $ do
             property
                 $ forAll goodYYYYMMDDStr 
-                $ (\str -> ((yyyymmdd str) <&> yyyymmddString) == Just str)
+                $ (\str -> ((ymd str) <&> ymdStr) == Just str)
         it "should fail when given invalid string" $ do
             property
                 $ forAll badYYYYMMDDStr 
-                $ (\str -> ((yyyymmdd str) <&> yyyymmddString) == Nothing)
+                $ (\str -> ((ymd str) <&> ymdStr) == Nothing)
 
 

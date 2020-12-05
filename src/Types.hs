@@ -6,8 +6,8 @@ module Types (
     Stock(..),
     Day(..),
     YYYYMMDD,
-    yyyymmdd,
-    yyyymmddString
+    ymd,
+    ymdStr
 ) where
 
 import Test.QuickCheck
@@ -60,8 +60,8 @@ newtype YYYYMMDD = YYYYMMDD String
 -- Year component must be integer from 0 to 9999 inclusive.
 -- Month component must be integer from 1 to 12 inclusive. 
 -- Day component must be integer from 1 to 31 inclusive. 
-yyyymmdd :: String -> Maybe YYYYMMDD
-yyyymmdd str = 
+ymd :: String -> Maybe YYYYMMDD
+ymd str = 
     let
         parseInt s = readMaybe s :: Maybe Int 
         between mn mx a = (mn <= a) && (a <= mx)
@@ -73,8 +73,8 @@ yyyymmdd str =
         then Just (YYYYMMDD str) 
         else Nothing
 
-yyyymmddString :: YYYYMMDD -> String
-yyyymmddString (YYYYMMDD str) = str
+ymdStr :: YYYYMMDD -> String
+ymdStr (YYYYMMDD str) = str
 
 instance Arbitrary Day where
     arbitrary = 
