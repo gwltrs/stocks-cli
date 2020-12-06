@@ -6,14 +6,15 @@ import Data.Functor ((<&>))
 import Data.Function ((&))
 import Text.Read (readMaybe)
 import Data.Maybe (isNothing)
+import Control.Category ((>>>))
 
 -- Produces strings that should always be accepted by the YYYYMMDD smart constructor
 goodYYYYMMDDStr :: Gen String
 goodYYYYMMDDStr = 
     let 
         yyyy = (choose (0, 9) :: Gen Int) <&> show & vectorOf 4 <&> concat
-        mm = (choose (1, 12) :: Gen Int) <&> show <&> leadZeros2
-        dd = (choose (1, 31) :: Gen Int) <&> show <&> leadZeros2
+        mm = (choose (1, 12) :: Gen Int) <&> show <&> leadZeros 2
+        dd = (choose (1, 31) :: Gen Int) <&> show <&> leadZeros 2
         concatAll y m d = y ++ m ++ d
     in
         concatAll <$> yyyy <*> mm <*> dd
@@ -22,25 +23,35 @@ goodYYYYMMDDStr =
 badYYYYMMDDStr :: Gen String
 badYYYYMMDDStr = 
     let 
-        yyyy = (choose (0, 9) :: Gen Int) <&> show & vectorOf 4 <&> concat
-        goodMM = (choose (1, 12) :: Gen Int) <&> show <&> leadZeros2
-        badMM = (oneof [pure 0, choose (13, 99)] :: Gen Int) <&> show <&> leadZeros2
-        goodDD = (choose (1, 31) :: Gen Int) <&> show <&> leadZeros2
-        badDD = (oneof [pure 0, choose (32, 99)] :: Gen Int) <&> show <&> leadZeros2
+        goodYYYY = (choose (0, 9999) :: Gen Int) <&> show <&> leadZeros 4
+        badYYYY = (choose (-999, -1) :: Gen Int) <&> show <&> leadZeros 4
+        goodMM = (choose (1, 12) :: Gen Int) <&> show <&> leadZeros 2
+        badMM = (oneof [choose (-9, 0), choose (13, 99)] :: Gen Int) <&> show <&> leadZeros 2
+        goodDD = (choose (1, 31) :: Gen Int) <&> show <&> leadZeros 2
+        badDD = (oneof [choose (-9, 0), choose (32, 99)] :: Gen Int) <&> show <&> leadZeros 2
+        -- Never all 0's
+        arbIndices = suchThat (choose (0, 1) & vectorOf 3) (sum >>> (>0)) 
+        asPair a b = (\c d -> [c, d]) <$> a <*> b
+        concatAll i y m d = zip i [y, m, d] <&> (\t -> (snd t) !! (fst t)) & concat --(y !! (i !! 0)) ++ (m !! (i !! 1)) ++ (d !! (i !! 2))
         allDigits = (choose (0, 9) :: Gen Int) <&> show & listOf <&> concat
         notInt str = isNothing (readMaybe str :: Maybe Int)
-        nonInt8Long = suchThat ((arbitrary :: Gen Char) & vectorOf 8) notInt
-        concatAll y m d = y ++ m ++ d
+        
     in
         oneof [
-            concatAll <$> yyyy <*> goodMM <*> badDD,
-            concatAll <$> yyyy <*> badMM <*> goodDD,
-            concatAll <$> yyyy <*> badMM <*> badDD,
+            -- Generating strings where at least one component (YYYY, MM, DD) is invalid
+            concatAll 
+                <$> arbIndices 
+                <*> asPair goodYYYY badYYYY 
+                <*> asPair goodMM badMM 
+                <*> asPair goodDD badDD,
+            -- Generating all-digit, not-8-length strings
             suchThat allDigits (\str -> length str /= 8),
-            nonInt8Long]
+            -- Generating not-integer, 8-length strings
+            suchThat ((arbitrary :: Gen Char) & vectorOf 8) notInt
+            ]
         
 -- Adds up to leadings zeros to the string 
-leadZeros2 :: String -> String
-leadZeros2 str = 
-    let ys = take 2 str
-    in replicate (2 - length ys) '0' ++ ys
+leadZeros :: Int -> String -> String
+leadZeros n str = 
+    let ys = take n str
+    in replicate (n - length ys) '0' ++ ys

@@ -17,7 +17,5 @@ typesTests = do
                 $ (\str -> ((ymd str) <&> ymdStr) == Just str)
         it "should fail when given invalid string" $ do
             property
-                $ forAll badYYYYMMDDStr 
-                $ (\str -> ((ymd str) <&> ymdStr) == Nothing)
-
-
+               $ forAll badYYYYMMDDStr 
+               $ (\str -> ((ymd str) <&> ymdStr) == Nothing)

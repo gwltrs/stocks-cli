@@ -65,11 +65,17 @@ ymd str =
     let
         parseInt s = readMaybe s :: Maybe Int 
         between mn mx a = (mn <= a) && (a <= mx)
-        yyyyValid = str & take 4 & parseInt & isJust
-        mmValid = str & drop 4 & take 2 & parseInt <&> between 1 12 & fromMaybe False
-        ddValid = str & drop 6 & take 2 & parseInt <&> between 1 31 & fromMaybe False
+        checkComponent drp tk mn mx str = str 
+            & drop drp 
+            & take tk 
+            & parseInt 
+            <&> between mn mx 
+            & fromMaybe False
+        yValid = checkComponent 0 4 0 9999 str
+        mValid = checkComponent 4 2 1 12 str
+        dValid = checkComponent 6 2 1 31 str
     in
-        if (length str == 8) && yyyyValid && mmValid && ddValid
+        if (length str == 8) && yValid && mValid && dValid
         then Just (YYYYMMDD str) 
         else Nothing
 
