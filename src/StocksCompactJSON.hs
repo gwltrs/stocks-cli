@@ -13,7 +13,7 @@ import Data.Text.Encoding (encodeUtf8, decodeUtf8)
 import Data.Vector (Vector, mapMaybe, toList, (!?), length)
 import Data.Scientific (toBoundedInteger, toRealFloat)
 
-import Types (Stock(..), Day(..))
+import Types (Stock(..), Day(..), YYYYMMDD, ymd, ymdStr)
 
 -- Converts stocks to JSON format where records are
 -- saved as ordered arrays instead of objects.
@@ -24,7 +24,7 @@ toStocksCompactJSON stocks =
         toJSONArray txts = 
             "[" <> (intercalate "," txts) <> "]"
         dayToTxtVals d = [
-            d & date & toJSONTxt, 
+            d & date & ymdStr & toJSONTxt, 
             d & open & show & pack, 
             d & high & show & pack, 
             d & low & show & pack, 
@@ -94,7 +94,7 @@ toDay val =
             Day { date = d, open = o, high = h, low = l, close = c, volume = v }
         dayFromVec vec = 
             day
-                <$> (vec & (!? 0) >>= toString)
+                <$> (vec & (!? 0) >>= toString >>= ymd)
                 <*> (vec & (!? 1) >>= toFloat)
                 <*> (vec & (!? 2) >>= toFloat)
                 <*> (vec & (!? 3) >>= toFloat)

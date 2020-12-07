@@ -36,14 +36,8 @@ data Stock = Stock {
     days :: [Day]
 } deriving (Eq, Show)
 
-instance Arbitrary Stock where
-    arbitrary = do
-        ASCIIString arbSymbol <- arbitrary
-        arbDays <- arbitrary
-        return Stock { symbol = arbSymbol, days = arbDays }
-
 data Day = Day {
-    date :: String,
+    date :: YYYYMMDD,
     open :: Float,
     high :: Float,
     low :: Float,
@@ -51,7 +45,7 @@ data Day = Day {
     volume :: Int
 } deriving (Eq, Show)
 
-newtype YYYYMMDD = YYYYMMDD String
+newtype YYYYMMDD = YYYYMMDD String deriving (Eq, Show)
 
 -- Smart constructor for YYYYMMDD.
 -- String argument must be exactly 8 characters long.
@@ -104,26 +98,3 @@ nonNegativeRealFloat f =
 
 flt :: NonNegativeRealFloat -> Float
 flt (NonNegativeRealFloat f) = f
-
-instance Arbitrary Day where
-    arbitrary = 
-        let
-            arb0To9 = choose (0, 9) <&> (show :: Int -> String)
-            -- Ensures lossless conversion to and from 
-            -- JSON which enables roundtrip testing.
-            roundTo16th :: Float -> Float
-            roundTo16th x = ((x * 16.0) & round & realToFrac) / 16.0
-        in do
-            arbYYYYMMDD <- vectorOf 8 arb0To9 <&> concat
-            NonNegative arbOpen <- arbitrary
-            NonNegative arbHigh <- arbitrary
-            NonNegative arbLow <- arbitrary
-            NonNegative arbClose <- arbitrary
-            NonNegative arbVol <- arbitrary
-            return Day { 
-                date = arbYYYYMMDD,
-                open = arbOpen & roundTo16th,
-                high = arbHigh & roundTo16th,
-                low = arbLow & roundTo16th,
-                close = arbClose & roundTo16th,
-                volume = arbVol }

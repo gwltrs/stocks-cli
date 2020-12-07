@@ -5,8 +5,10 @@ import Test.QuickCheck
 import Data.Functor ((<&>))
 import Data.Function ((&))
 import Text.Read (readMaybe)
-import Data.Maybe (isNothing)
+import Data.Maybe (isNothing, fromJust)
 import Control.Category ((>>>))
+
+import Types (Stock(..), Day(..), ymd)
 
 -- Produces strings that should always be accepted by the YYYYMMDD smart constructor
 goodYYYYMMDDStr :: Gen String
@@ -64,3 +66,31 @@ leadZeros :: Int -> String -> String
 leadZeros n str = 
     let ys = take n str
     in replicate (n - length ys) '0' ++ ys
+
+instance Arbitrary Stock where
+    arbitrary = do
+        ASCIIString arbSymbol <- arbitrary
+        arbDays <- arbitrary
+        return Stock { symbol = arbSymbol, days = arbDays }
+
+instance Arbitrary Day where
+    arbitrary = 
+        let
+            -- Ensures lossless conversion to and from 
+            -- JSON which enables roundtrip testing.
+            roundTo16th :: Float -> Float
+            roundTo16th x = ((x * 16.0) & round & realToFrac) / 16.0
+        in do
+            arbYYYYMMDD <- goodYYYYMMDDStr <&> ymd <&> fromJust
+            NonNegative arbOpen <- arbitrary
+            NonNegative arbHigh <- arbitrary
+            NonNegative arbLow <- arbitrary
+            NonNegative arbClose <- arbitrary
+            NonNegative arbVol <- arbitrary
+            return Day { 
+                date = arbYYYYMMDD,
+                open = arbOpen & roundTo16th,
+                high = arbHigh & roundTo16th,
+                low = arbLow & roundTo16th,
+                close = arbClose & roundTo16th,
+                volume = arbVol }
