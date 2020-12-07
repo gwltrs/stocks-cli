@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 module Types (
     CLICommand(..), 
     CLIState(..), 

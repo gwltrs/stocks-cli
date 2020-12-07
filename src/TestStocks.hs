@@ -1,654 +1,653 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module TestStocks where
 
+import Data.Text (Text)
+
 import Types (Day(..), Stock(..))
+import StocksCompactJSON (parseStocksCompactJSON)
 
--- All float values rounded to the nearest sixteenth for precise floating-point representation.
-testStocks :: [Stock]
-testStocks = [testAMZN, testF]
-
--- Amazon from 4/1/2019 to 10/1/2020
-testAMZN :: Stock
-testAMZN = Stock { symbol = "AMZN", days = testAMZNDays }
-
--- Ford from 1/2/2019 to 12/31/2019
-testF :: Stock
-testF = Stock { symbol = "F", days = testFDays }
-
-testFDays :: [Day]
-testFDays = [
-    Day { date = "20190102", open = 7.5, high = 8, low = 7.5, close = 7.875, volume = 47494361 },
-    Day { date = "20190103", open = 8, high = 8, low = 7.75, close = 7.75, volume = 39172395 },
-    Day { date = "20190104", open = 7.9375, high = 8.125, low = 7.875, close = 8.0625, volume = 43039807 },
-    Day { date = "20190107", open = 8.125, high = 8.375, low = 8, close = 8.3125, volume = 40729353 },
-    Day { date = "20190108", open = 8.4375, high = 8.5625, low = 8.375, close = 8.375, volume = 45643969 },
-    Day { date = "20190109", open = 8.4375, high = 8.75, low = 8.375, close = 8.75, volume = 48404884 },
-    Day { date = "20190110", open = 8.6875, high = 8.75, low = 8.4375, close = 8.6875, volume = 39490422 },
-    Day { date = "20190111", open = 8.75, high = 8.9375, low = 8.6875, close = 8.8125, volume = 41559875 },
-    Day { date = "20190114", open = 8.8125, high = 9.0625, low = 8.75, close = 9, volume = 44833842 },
-    Day { date = "20190115", open = 9, high = 9, low = 8.75, close = 8.8125, volume = 65311702 },
-    Day { date = "20190116", open = 8.6875, high = 8.75, low = 8.25, close = 8.3125, volume = 73869859 },
-    Day { date = "20190117", open = 8.25, high = 8.4375, low = 8.1875, close = 8.375, volume = 56722604 },
-    Day { date = "20190118", open = 8.375, high = 8.625, low = 8.3125, close = 8.5625, volume = 51127860 },
-    Day { date = "20190122", open = 8.5625, high = 8.625, low = 8.4375, close = 8.5, volume = 47182620 },
-    Day { date = "20190123", open = 8.5625, high = 8.5625, low = 8.25, close = 8.3125, volume = 45196860 },
-    Day { date = "20190124", open = 8.3125, high = 8.6875, low = 8.25, close = 8.625, volume = 79516367 },
-    Day { date = "20190125", open = 8.75, high = 8.9375, low = 8.75, close = 8.875, volume = 53130148 },
-    Day { date = "20190128", open = 8.8125, high = 8.8125, low = 8.5625, close = 8.6875, volume = 42116304 },
-    Day { date = "20190129", open = 8.6875, high = 8.8125, low = 8.625, close = 8.75, volume = 30485016 },
-    Day { date = "20190130", open = 8.6875, high = 8.75, low = 8.5, close = 8.6875, volume = 29906134 },
-    Day { date = "20190131", open = 8.625, high = 8.8125, low = 8.625, close = 8.8125, volume = 39389094 },
-    Day { date = "20190201", open = 8.75, high = 8.8125, low = 8.625, close = 8.75, volume = 34124005 },
-    Day { date = "20190204", open = 8.6875, high = 8.6875, low = 8.5625, close = 8.6875, volume = 28855569 },
-    Day { date = "20190205", open = 8.6875, high = 8.75, low = 8.625, close = 8.75, volume = 26166848 },
-    Day { date = "20190206", open = 8.8125, high = 8.875, low = 8.6875, close = 8.75, volume = 32644299 },
-    Day { date = "20190207", open = 8.625, high = 8.625, low = 8.3125, close = 8.3125, volume = 55161837 },
-    Day { date = "20190208", open = 8.3125, high = 8.4375, low = 8.1875, close = 8.375, volume = 38650090 },
-    Day { date = "20190211", open = 8.4375, high = 8.4375, low = 8.3125, close = 8.3125, volume = 27403546 },
-    Day { date = "20190212", open = 8.375, high = 8.5, low = 8.375, close = 8.4375, volume = 26235089 },
-    Day { date = "20190213", open = 8.4375, high = 8.6875, low = 8.375, close = 8.4375, volume = 27182886 },
-    Day { date = "20190214", open = 8.375, high = 8.5, low = 8.3125, close = 8.4375, volume = 23569872 },
-    Day { date = "20190215", open = 8.5, high = 8.5625, low = 8.4375, close = 8.5625, volume = 58080330 },
-    Day { date = "20190219", open = 8.5, high = 8.875, low = 8.5, close = 8.8125, volume = 37929175 },
-    Day { date = "20190220", open = 8.8125, high = 9, low = 8.8125, close = 8.9375, volume = 55316868 },
-    Day { date = "20190221", open = 8.9375, high = 8.9375, low = 8.6875, close = 8.6875, volume = 44730351 },
-    Day { date = "20190222", open = 8.75, high = 8.75, low = 8.5625, close = 8.6875, volume = 40947503 },
-    Day { date = "20190225", open = 8.75, high = 8.875, low = 8.75, close = 8.75, volume = 56615428 },
-    Day { date = "20190226", open = 8.75, high = 8.9375, low = 8.75, close = 8.875, volume = 38348838 },
-    Day { date = "20190227", open = 8.8125, high = 8.9375, low = 8.75, close = 8.75, volume = 34093320 },
-    Day { date = "20190228", open = 8.75, high = 8.8125, low = 8.625, close = 8.75, volume = 43960541 },
-    Day { date = "20190301", open = 8.875, high = 8.875, low = 8.6875, close = 8.8125, volume = 37699506 },
-    Day { date = "20190304", open = 8.8125, high = 9, low = 8.75, close = 8.8125, volume = 46196859 },
-    Day { date = "20190305", open = 8.8125, high = 8.8125, low = 8.6875, close = 8.75, volume = 40852648 },
-    Day { date = "20190306", open = 8.75, high = 8.75, low = 8.5625, close = 8.5625, volume = 50378587 },
-    Day { date = "20190307", open = 8.5625, high = 8.5625, low = 8.375, close = 8.5, volume = 54285995 },
-    Day { date = "20190308", open = 8.375, high = 8.5, low = 8.3125, close = 8.4375, volume = 43766799 },
-    Day { date = "20190311", open = 8.4375, high = 8.625, low = 8.4375, close = 8.625, volume = 36875290 },
-    Day { date = "20190312", open = 8.625, high = 8.6875, low = 8.5625, close = 8.5625, volume = 37805025 },
-    Day { date = "20190313", open = 8.5625, high = 8.625, low = 8.5, close = 8.5, volume = 49018694 },
-    Day { date = "20190314", open = 8.5, high = 8.5625, low = 8.375, close = 8.4375, volume = 36307868 },
-    Day { date = "20190315", open = 8.4375, high = 8.5, low = 8.375, close = 8.4375, volume = 66555519 },
-    Day { date = "20190318", open = 8.4375, high = 8.5625, low = 8.4375, close = 8.5625, volume = 37198328 },
-    Day { date = "20190319", open = 8.625, high = 8.875, low = 8.625, close = 8.6875, volume = 57293608 },
-    Day { date = "20190320", open = 8.6875, high = 8.6875, low = 8.5, close = 8.5, volume = 54539726 },
-    Day { date = "20190321", open = 8.5, high = 8.6875, low = 8.5, close = 8.6875, volume = 46843085 },
-    Day { date = "20190322", open = 8.625, high = 8.6875, low = 8.5, close = 8.5625, volume = 41963991 },
-    Day { date = "20190325", open = 8.5625, high = 8.625, low = 8.5, close = 8.5, volume = 45849484 },
-    Day { date = "20190326", open = 8.5625, high = 8.75, low = 8.5625, close = 8.75, volume = 47852114 },
-    Day { date = "20190327", open = 8.75, high = 8.875, low = 8.625, close = 8.625, volume = 39895763 },
-    Day { date = "20190328", open = 8.625, high = 8.8125, low = 8.625, close = 8.75, volume = 38914696 },
-    Day { date = "20190329", open = 8.8125, high = 8.875, low = 8.6875, close = 8.75, volume = 33962755 },
-    Day { date = "20190401", open = 8.875, high = 9, low = 8.875, close = 9, volume = 45653096 },
-    Day { date = "20190402", open = 8.9375, high = 9, low = 8.9375, close = 9, volume = 30699413 },
-    Day { date = "20190403", open = 9.0625, high = 9.25, low = 9.0625, close = 9.125, volume = 56663558 },
-    Day { date = "20190404", open = 9.1875, high = 9.3125, low = 9.1875, close = 9.25, volume = 39483120 },
-    Day { date = "20190405", open = 9.1875, high = 9.25, low = 9.0625, close = 9.25, volume = 37854698 },
-    Day { date = "20190408", open = 9.1875, high = 9.3125, low = 9.1875, close = 9.3125, volume = 26221135 },
-    Day { date = "20190409", open = 9.25, high = 9.375, low = 9.1875, close = 9.1875, volume = 29879089 },
-    Day { date = "20190410", open = 9.25, high = 9.375, low = 9.1875, close = 9.3125, volume = 28469482 },
-    Day { date = "20190411", open = 9.375, high = 9.4375, low = 9.3125, close = 9.375, volume = 26488106 },
-    Day { date = "20190412", open = 9.5, high = 9.625, low = 9.4375, close = 9.4375, volume = 38646020 },
-    Day { date = "20190415", open = 9.5, high = 9.5, low = 9.25, close = 9.3125, volume = 41206747 },
-    Day { date = "20190416", open = 9.3125, high = 9.375, low = 9.25, close = 9.375, volume = 40949992 },
-    Day { date = "20190417", open = 9.375, high = 9.5625, low = 9.375, close = 9.5, volume = 30688316 },
-    Day { date = "20190418", open = 9.5, high = 9.625, low = 9.5, close = 9.5625, volume = 29843042 },
-    Day { date = "20190422", open = 9.5625, high = 9.5625, low = 9.4375, close = 9.5, volume = 38718506 },
-    Day { date = "20190423", open = 9.375, high = 9.5, low = 9.3125, close = 9.5, volume = 39493689 },
-    Day { date = "20190424", open = 9.4375, high = 9.625, low = 9.375, close = 9.5625, volume = 39796303 },
-    Day { date = "20190425", open = 9.5, high = 9.5, low = 9.3125, close = 9.375, volume = 52596747 },
-    Day { date = "20190426", open = 10, high = 10.4375, low = 9.9375, close = 10.4375, volume = 156136698 },
-    Day { date = "20190429", open = 10.375, high = 10.375, low = 10.0625, close = 10.3125, volume = 62500522 },
-    Day { date = "20190430", open = 10.3125, high = 10.5, low = 10.25, close = 10.4375, volume = 46079308 },
-    Day { date = "20190501", open = 10.5, high = 10.5, low = 10.3125, close = 10.3125, volume = 41805504 },
-    Day { date = "20190502", open = 10.3125, high = 10.375, low = 10.1875, close = 10.3125, volume = 34508446 },
-    Day { date = "20190503", open = 10.375, high = 10.4375, low = 10.3125, close = 10.4375, volume = 36291243 },
-    Day { date = "20190506", open = 10.125, high = 10.4375, low = 10.125, close = 10.375, volume = 28640578 },
-    Day { date = "20190507", open = 10.3125, high = 10.4375, low = 10.3125, close = 10.375, volume = 41154485 },
-    Day { date = "20190508", open = 10.375, high = 10.4375, low = 10.3125, close = 10.3125, volume = 33472200 },
-    Day { date = "20190509", open = 10.25, high = 10.3125, low = 10.0625, close = 10.1875, volume = 43621299 },
-    Day { date = "20190510", open = 10.3125, high = 10.4375, low = 10.1875, close = 10.375, volume = 37629526 },
-    Day { date = "20190513", open = 10.1875, high = 10.25, low = 10.0625, close = 10.0625, volume = 51102054 },
-    Day { date = "20190514", open = 10.125, high = 10.3125, low = 10.125, close = 10.25, volume = 31297221 },
-    Day { date = "20190515", open = 10.1875, high = 10.375, low = 10.0625, close = 10.375, volume = 44050200 },
-    Day { date = "20190516", open = 10.3125, high = 10.4375, low = 10.3125, close = 10.375, volume = 32696980 },
-    Day { date = "20190517", open = 10.3125, high = 10.4375, low = 10.25, close = 10.3125, volume = 34565393 },
-    Day { date = "20190520", open = 10.3125, high = 10.3125, low = 10.1875, close = 10.25, volume = 29535935 },
-    Day { date = "20190521", open = 10.3125, high = 10.3125, low = 10.125, close = 10.25, volume = 30099324 },
-    Day { date = "20190522", open = 10.1875, high = 10.1875, low = 9.9375, close = 10, volume = 51407182 },
-    Day { date = "20190523", open = 9.875, high = 9.875, low = 9.6875, close = 9.875, volume = 43153773 },
-    Day { date = "20190524", open = 9.9375, high = 9.9375, low = 9.8125, close = 9.8125, volume = 22131457 },
-    Day { date = "20190528", open = 9.875, high = 9.875, low = 9.75, close = 9.75, volume = 27656181 },
-    Day { date = "20190529", open = 9.6875, high = 9.75, low = 9.5625, close = 9.6875, volume = 32262552 },
-    Day { date = "20190530", open = 9.75, high = 9.8125, low = 9.6875, close = 9.75, volume = 24759571 },
-    Day { date = "20190531", open = 9.5, high = 9.5625, low = 9.3125, close = 9.5, volume = 48250384 },
-    Day { date = "20190603", open = 9.625, high = 9.625, low = 9.4375, close = 9.625, volume = 39446800 },
-    Day { date = "20190604", open = 9.75, high = 9.9375, low = 9.75, close = 9.9375, volume = 37324130 },
-    Day { date = "20190605", open = 9.875, high = 9.9375, low = 9.625, close = 9.75, volume = 42464814 },
-    Day { date = "20190606", open = 9.75, high = 9.8125, low = 9.6875, close = 9.75, volume = 28291063 },
-    Day { date = "20190607", open = 9.75, high = 9.8125, low = 9.6875, close = 9.75, volume = 18848704 },
-    Day { date = "20190610", open = 9.875, high = 10, low = 9.75, close = 9.8125, volume = 33883401 },
-    Day { date = "20190611", open = 9.875, high = 10, low = 9.8125, close = 9.9375, volume = 26434185 },
-    Day { date = "20190612", open = 9.875, high = 9.9375, low = 9.8125, close = 9.875, volume = 21746723 },
-    Day { date = "20190613", open = 9.875, high = 10.0625, low = 9.8125, close = 10.0625, volume = 25555852 },
-    Day { date = "20190614", open = 10, high = 10.0625, low = 9.9375, close = 10, volume = 21553248 },
-    Day { date = "20190617", open = 10, high = 10.0625, low = 9.9375, close = 10.0625, volume = 19383830 },
-    Day { date = "20190618", open = 10.0625, high = 10.1875, low = 10.0625, close = 10.125, volume = 32591675 },
-    Day { date = "20190619", open = 10.125, high = 10.1875, low = 10, close = 10.0625, volume = 29051257 },
-    Day { date = "20190620", open = 10.125, high = 10.125, low = 9.9375, close = 10.0625, volume = 32086473 },
-    Day { date = "20190621", open = 10, high = 10.0625, low = 9.9375, close = 10, volume = 47904041 },
-    Day { date = "20190624", open = 9.9375, high = 10, low = 9.9375, close = 9.9375, volume = 28091230 },
-    Day { date = "20190625", open = 10, high = 10, low = 9.8125, close = 9.8125, volume = 28682019 },
-    Day { date = "20190626", open = 9.875, high = 9.9375, low = 9.8125, close = 9.9375, volume = 33739050 },
-    Day { date = "20190627", open = 10.0625, high = 10.25, low = 10, close = 10.1875, volume = 42954594 },
-    Day { date = "20190628", open = 10.1875, high = 10.3125, low = 10.1875, close = 10.25, volume = 37555290 },
-    Day { date = "20190701", open = 10.3125, high = 10.4375, low = 10.0625, close = 10.125, volume = 38537013 },
-    Day { date = "20190702", open = 10.125, high = 10.1875, low = 10.0625, close = 10.125, volume = 29715482 },
-    Day { date = "20190703", open = 10.1875, high = 10.3125, low = 10.125, close = 10.1875, volume = 19326620 },
-    Day { date = "20190705", open = 10.1875, high = 10.25, low = 10.0625, close = 10.1875, volume = 21397917 },
-    Day { date = "20190708", open = 10.1875, high = 10.25, low = 10.1875, close = 10.1875, volume = 23244145 },
-    Day { date = "20190709", open = 10.1875, high = 10.1875, low = 10.125, close = 10.125, volume = 25140615 },
-    Day { date = "20190710", open = 10.1875, high = 10.25, low = 10.125, close = 10.125, volume = 29082154 },
-    Day { date = "20190711", open = 10.125, high = 10.1875, low = 10.125, close = 10.1875, volume = 27667547 },
-    Day { date = "20190712", open = 10.25, high = 10.5, low = 10.25, close = 10.5, volume = 40761563 },
-    Day { date = "20190715", open = 10.5, high = 10.5625, low = 10.3125, close = 10.4375, volume = 33753508 },
-    Day { date = "20190716", open = 10.375, high = 10.5, low = 10.3125, close = 10.5, volume = 29530493 },
-    Day { date = "20190717", open = 10.5, high = 10.5, low = 10.3125, close = 10.3125, volume = 25204389 },
-    Day { date = "20190718", open = 10.3125, high = 10.3125, low = 10.1875, close = 10.25, volume = 25828860 },
-    Day { date = "20190719", open = 10.3125, high = 10.3125, low = 10.1875, close = 10.1875, volume = 38505641 },
-    Day { date = "20190722", open = 10.125, high = 10.1875, low = 10, close = 10, volume = 36238647 },
-    Day { date = "20190723", open = 10.125, high = 10.25, low = 10.0625, close = 10.1875, volume = 74624841 },
-    Day { date = "20190724", open = 10.1875, high = 10.375, low = 10.125, close = 10.3125, volume = 61107450 },
-    Day { date = "20190725", open = 9.75, high = 9.75, low = 9.375, close = 9.5625, volume = 133898570 },
-    Day { date = "20190726", open = 9.5625, high = 9.625, low = 9.5, close = 9.5625, volume = 47710167 },
-    Day { date = "20190729", open = 9.625, high = 9.6875, low = 9.5, close = 9.625, volume = 36487758 },
-    Day { date = "20190730", open = 9.5625, high = 9.5625, low = 9.5, close = 9.5625, volume = 36944663 },
-    Day { date = "20190731", open = 9.5625, high = 9.5625, low = 9.375, close = 9.5, volume = 56715513 },
-    Day { date = "20190801", open = 9.5, high = 9.5625, low = 9.25, close = 9.3125, volume = 58060754 },
-    Day { date = "20190802", open = 9.25, high = 9.3125, low = 9.1875, close = 9.25, volume = 41495163 },
-    Day { date = "20190805", open = 9.1875, high = 9.25, low = 9.0625, close = 9.25, volume = 47963445 },
-    Day { date = "20190806", open = 9.4375, high = 9.5, low = 9.375, close = 9.5, volume = 51856101 },
-    Day { date = "20190807", open = 9.4375, high = 9.5625, low = 9.3125, close = 9.5, volume = 43042366 },
-    Day { date = "20190808", open = 9.5625, high = 9.625, low = 9.5, close = 9.5625, volume = 25468954 },
-    Day { date = "20190809", open = 9.5625, high = 9.5625, low = 9.375, close = 9.4375, volume = 38739667 },
-    Day { date = "20190812", open = 9.375, high = 9.4375, low = 9.25, close = 9.3125, volume = 23050381 },
-    Day { date = "20190813", open = 9.3125, high = 9.4375, low = 9.1875, close = 9.25, volume = 28314963 },
-    Day { date = "20190814", open = 9.125, high = 9.125, low = 8.9375, close = 9, volume = 45967364 },
-    Day { date = "20190815", open = 9.0625, high = 9.0625, low = 8.75, close = 8.875, volume = 40682769 },
-    Day { date = "20190816", open = 8.9375, high = 9, low = 8.8125, close = 8.9375, volume = 27369852 },
-    Day { date = "20190819", open = 9.0625, high = 9.125, low = 9, close = 9, volume = 21844004 },
-    Day { date = "20190820", open = 9, high = 9.0625, low = 8.9375, close = 8.9375, volume = 25119456 },
-    Day { date = "20190821", open = 9, high = 9.0625, low = 9, close = 9.0625, volume = 20443922 },
-    Day { date = "20190822", open = 9.0625, high = 9.125, low = 9, close = 9.0625, volume = 20977683 },
-    Day { date = "20190823", open = 8.875, high = 9, low = 8.75, close = 8.75, volume = 44987686 },
-    Day { date = "20190826", open = 8.875, high = 8.9375, low = 8.8125, close = 8.8125, volume = 31890304 },
-    Day { date = "20190827", open = 8.875, high = 8.9375, low = 8.75, close = 8.75, volume = 23032302 },
-    Day { date = "20190828", open = 8.75, high = 9.0625, low = 8.6875, close = 9, volume = 35147625 },
-    Day { date = "20190829", open = 9.125, high = 9.125, low = 9, close = 9.125, volume = 22016749 },
-    Day { date = "20190830", open = 9.1875, high = 9.25, low = 9.125, close = 9.1875, volume = 32060743 },
-    Day { date = "20190903", open = 9.1875, high = 9.1875, low = 9.0625, close = 9.125, volume = 26331720 },
-    Day { date = "20190904", open = 9.1875, high = 9.25, low = 9.0625, close = 9.1875, volume = 27410227 },
-    Day { date = "20190905", open = 9.25, high = 9.375, low = 9.25, close = 9.3125, volume = 36640467 },
-    Day { date = "20190906", open = 9.375, high = 9.4375, low = 9.1875, close = 9.3125, volume = 29210272 },
-    Day { date = "20190909", open = 9.375, high = 9.625, low = 9.375, close = 9.5625, volume = 48059365 },
-    Day { date = "20190910", open = 9.0625, high = 9.4375, low = 9.0625, close = 9.4375, volume = 70567287 },
-    Day { date = "20190911", open = 9.3125, high = 9.4375, low = 9.3125, close = 9.4375, volume = 34190270 },
-    Day { date = "20190912", open = 9.375, high = 9.5, low = 9.3125, close = 9.4375, volume = 35687710 },
-    Day { date = "20190913", open = 9.5, high = 9.5625, low = 9.4375, close = 9.4375, volume = 27161260 },
-    Day { date = "20190916", open = 9.375, high = 9.4375, low = 9.25, close = 9.3125, volume = 50052608 },
-    Day { date = "20190917", open = 9.25, high = 9.3125, low = 9.1875, close = 9.25, volume = 27510984 },
-    Day { date = "20190918", open = 9.25, high = 9.375, low = 9.25, close = 9.25, volume = 24473869 },
-    Day { date = "20190919", open = 9.3125, high = 9.3125, low = 9.125, close = 9.125, volume = 29133987 },
-    Day { date = "20190920", open = 9.125, high = 9.3125, low = 9.125, close = 9.1875, volume = 38117099 },
-    Day { date = "20190923", open = 9.125, high = 9.25, low = 9.0625, close = 9.1875, volume = 23591820 },
-    Day { date = "20190924", open = 9.1875, high = 9.25, low = 9.0625, close = 9.125, volume = 33167702 },
-    Day { date = "20190925", open = 9.125, high = 9.25, low = 9.0625, close = 9.1875, volume = 20555603 },
-    Day { date = "20190926", open = 9.25, high = 9.25, low = 9.0625, close = 9.125, volume = 26593308 },
-    Day { date = "20190927", open = 9.125, high = 9.625, low = 9.0625, close = 9.0625, volume = 32462237 },
-    Day { date = "20190930", open = 9.125, high = 9.1875, low = 9.125, close = 9.1875, volume = 22493308 },
-    Day { date = "20191001", open = 9.1875, high = 9.25, low = 8.875, close = 8.875, volume = 39690749 },
-    Day { date = "20191002", open = 8.875, high = 8.875, low = 8.4375, close = 8.625, volume = 68290414 },
-    Day { date = "20191003", open = 8.5625, high = 8.6875, low = 8.4375, close = 8.6875, volume = 41250596 },
-    Day { date = "20191004", open = 8.75, high = 8.75, low = 8.6875, close = 8.75, volume = 28096692 },
-    Day { date = "20191007", open = 8.6875, high = 8.8125, low = 8.625, close = 8.6875, volume = 29494228 },
-    Day { date = "20191008", open = 8.625, high = 8.6875, low = 8.5, close = 8.5625, volume = 31598385 },
-    Day { date = "20191009", open = 8.625, high = 8.625, low = 8.5625, close = 8.5625, volume = 16979210 },
-    Day { date = "20191010", open = 8.5625, high = 8.625, low = 8.5, close = 8.625, volume = 28223352 },
-    Day { date = "20191011", open = 8.75, high = 8.875, low = 8.75, close = 8.75, volume = 34210303 },
-    Day { date = "20191014", open = 8.8125, high = 8.8125, low = 8.75, close = 8.8125, volume = 25444792 },
-    Day { date = "20191015", open = 8.8125, high = 9.125, low = 8.75, close = 9.0625, volume = 31040706 },
-    Day { date = "20191016", open = 9.125, high = 9.1875, low = 9.0625, close = 9.0625, volume = 27386353 },
-    Day { date = "20191017", open = 9.125, high = 9.125, low = 9, close = 9.125, volume = 28652392 },
-    Day { date = "20191018", open = 9.0625, high = 9.3125, low = 9.0625, close = 9.3125, volume = 42432622 },
-    Day { date = "20191021", open = 9.1875, high = 9.25, low = 9, close = 9, volume = 33812870 },
-    Day { date = "20191022", open = 9, high = 9.125, low = 8.9375, close = 9.0625, volume = 35997409 },
-    Day { date = "20191023", open = 9, high = 9.1875, low = 9, close = 9.1875, volume = 46677592 },
-    Day { date = "20191024", open = 8.875, high = 8.875, low = 8.5625, close = 8.625, volume = 121123977 },
-    Day { date = "20191025", open = 8.6875, high = 8.75, low = 8.625, close = 8.75, volume = 51373623 },
-    Day { date = "20191028", open = 8.75, high = 8.75, low = 8.5625, close = 8.625, volume = 39635287 },
-    Day { date = "20191029", open = 8.5625, high = 8.6875, low = 8.5625, close = 8.625, volume = 36771757 },
-    Day { date = "20191030", open = 8.625, high = 8.625, low = 8.5, close = 8.5625, volume = 28685314 },
-    Day { date = "20191031", open = 8.5625, high = 8.625, low = 8.5, close = 8.5625, volume = 29124080 },
-    Day { date = "20191101", open = 8.625, high = 8.9375, low = 8.625, close = 8.875, volume = 55354930 },
-    Day { date = "20191104", open = 8.9375, high = 9.0625, low = 8.9375, close = 9, volume = 46716530 },
-    Day { date = "20191105", open = 9, high = 9.125, low = 9, close = 9, volume = 37569674 },
-    Day { date = "20191106", open = 9.0625, high = 9.0625, low = 8.875, close = 8.9375, volume = 39497700 },
-    Day { date = "20191107", open = 8.9375, high = 9, low = 8.875, close = 8.875, volume = 32640397 },
-    Day { date = "20191108", open = 8.875, high = 9.0625, low = 8.8125, close = 9.0625, volume = 29489854 },
-    Day { date = "20191111", open = 8.9375, high = 9.125, low = 8.9375, close = 9.0625, volume = 24852635 },
-    Day { date = "20191112", open = 9.0625, high = 9.125, low = 9.0625, close = 9.0625, volume = 28710942 },
-    Day { date = "20191113", open = 9, high = 9, low = 8.8125, close = 8.8125, volume = 34820794 },
-    Day { date = "20191114", open = 8.875, high = 8.875, low = 8.75, close = 8.8125, volume = 26542134 },
-    Day { date = "20191115", open = 8.875, high = 8.9375, low = 8.875, close = 8.9375, volume = 26430897 },
-    Day { date = "20191118", open = 9.0625, high = 9.0625, low = 8.875, close = 8.9375, volume = 38296388 },
-    Day { date = "20191119", open = 9, high = 9, low = 8.875, close = 8.875, volume = 31192765 },
-    Day { date = "20191120", open = 8.875, high = 8.875, low = 8.6875, close = 8.75, volume = 38291750 },
-    Day { date = "20191121", open = 8.75, high = 8.8125, low = 8.6875, close = 8.6875, volume = 33161371 },
-    Day { date = "20191122", open = 8.8125, high = 8.875, low = 8.75, close = 8.875, volume = 34966746 },
-    Day { date = "20191125", open = 8.875, high = 9, low = 8.875, close = 9, volume = 30617388 },
-    Day { date = "20191126", open = 9, high = 9, low = 8.9375, close = 9, volume = 30106841 },
-    Day { date = "20191127", open = 9, high = 9.125, low = 9, close = 9.125, volume = 37424079 },
-    Day { date = "20191129", open = 9.0625, high = 9.125, low = 9, close = 9.0625, volume = 13096150 },
-    Day { date = "20191202", open = 9.0625, high = 9.125, low = 9, close = 9, volume = 37270512 },
-    Day { date = "20191203", open = 8.9375, high = 8.9375, low = 8.8125, close = 8.875, volume = 41121654 },
-    Day { date = "20191204", open = 8.9375, high = 9, low = 8.9375, close = 8.9375, volume = 29994673 },
-    Day { date = "20191205", open = 9, high = 9, low = 8.875, close = 8.9375, volume = 25770717 },
-    Day { date = "20191206", open = 8.9375, high = 9.0625, low = 8.9375, close = 9, volume = 31111724 },
-    Day { date = "20191209", open = 9, high = 9.0625, low = 8.9375, close = 9, volume = 21898172 },
-    Day { date = "20191210", open = 9, high = 9.125, low = 8.9375, close = 9.0625, volume = 34233141 },
-    Day { date = "20191211", open = 9.0625, high = 9.125, low = 9.0625, close = 9.125, volume = 33205336 },
-    Day { date = "20191212", open = 9.125, high = 9.375, low = 9.125, close = 9.3125, volume = 48398724 },
-    Day { date = "20191213", open = 9.3125, high = 9.375, low = 9.1875, close = 9.25, volume = 35334491 },
-    Day { date = "20191216", open = 9.25, high = 9.375, low = 9.25, close = 9.375, volume = 42339949 },
-    Day { date = "20191217", open = 9.375, high = 9.4375, low = 9.3125, close = 9.375, volume = 35516663 },
-    Day { date = "20191218", open = 9.375, high = 9.5625, low = 9.375, close = 9.5625, volume = 45929401 },
-    Day { date = "20191219", open = 9.5625, high = 9.5625, low = 9.375, close = 9.4375, volume = 42237371 },
-    Day { date = "20191220", open = 9.5, high = 9.5625, low = 9.4375, close = 9.5, volume = 50199268 },
-    Day { date = "20191223", open = 9.5, high = 9.5625, low = 9.375, close = 9.4375, volume = 54795992 },
-    Day { date = "20191224", open = 9.4375, high = 9.5, low = 9.4375, close = 9.5, volume = 11881604 },
-    Day { date = "20191226", open = 9.5, high = 9.5, low = 9.4375, close = 9.4375, volume = 28982311 },
-    Day { date = "20191227", open = 9.4375, high = 9.4375, low = 9.375, close = 9.375, volume = 28273603 },
-    Day { date = "20191230", open = 9.3125, high = 9.375, low = 9.25, close = 9.25, volume = 36085418 },
-    Day { date = "20191231", open = 9.25, high = 9.3125, low = 9.25, close = 9.3125, volume = 32345377 } ]
-
-testAMZNDays :: [Day]
-testAMZNDays = [
-    Day { date = "20190401", open = 1800.125, high = 1815.6875, low = 1798.75, close = 1814.1875, volume = 4238752 },
-    Day { date = "20190402", open = 1811, high = 1820, low = 1805.125, close = 1814, volume = 3448115 },
-    Day { date = "20190403", open = 1826.75, high = 1830, low = 1809.625, close = 1820.6875, volume = 3980590 },
-    Day { date = "20190404", open = 1820.625, high = 1828.75, low = 1804.1875, close = 1818.875, volume = 3623867 },
-    Day { date = "20190405", open = 1829, high = 1838.5625, low = 1825.1875, close = 1837.25, volume = 3640476 },
-    Day { date = "20190408", open = 1833.25, high = 1850.1875, low = 1825.125, close = 1849.875, volume = 3752841 },
-    Day { date = "20190409", open = 1845.5, high = 1853.0625, low = 1831.75, close = 1835.8125, volume = 3714368 },
-    Day { date = "20190410", open = 1841, high = 1848, low = 1828.8125, close = 1847.3125, volume = 2963973 },
-    Day { date = "20190411", open = 1848.6875, high = 1849.9375, low = 1840.3125, close = 1844.0625, volume = 2654842 },
-    Day { date = "20190412", open = 1848.375, high = 1851.5, low = 1841.3125, close = 1843.0625, volume = 3114413 },
-    Day { date = "20190415", open = 1842, high = 1846.875, low = 1818.875, close = 1844.875, volume = 3724423 },
-    Day { date = "20190416", open = 1851.375, high = 1869.75, low = 1848, close = 1863.0625, volume = 3044618 },
-    Day { date = "20190417", open = 1873, high = 1876.5, low = 1860.4375, close = 1864.8125, volume = 2893517 },
-    Day { date = "20190418", open = 1868.8125, high = 1870.8125, low = 1859.5, close = 1861.6875, volume = 2749882 },
-    Day { date = "20190422", open = 1855.375, high = 1888.4375, low = 1845.625, close = 1887.3125, volume = 3373807 },
-    Day { date = "20190423", open = 1891.1875, high = 1929.25, low = 1889.5625, close = 1923.75, volume = 4640441 },
-    Day { date = "20190424", open = 1925, high = 1929.6875, low = 1898.1875, close = 1901.75, volume = 3675781 },
-    Day { date = "20190425", open = 1917, high = 1922.4375, low = 1900.3125, close = 1902.25, volume = 6099101 },
-    Day { date = "20190426", open = 1929, high = 1951, low = 1898, close = 1950.625, volume = 8432563 },
-    Day { date = "20190429", open = 1949, high = 1956.3125, low = 1934.0625, close = 1938.4375, volume = 4021255 },
-    Day { date = "20190430", open = 1930.125, high = 1935.6875, low = 1906.9375, close = 1926.5, volume = 3506007 },
-    Day { date = "20190501", open = 1933.0625, high = 1943.625, low = 1910.5625, close = 1911.5, volume = 3116964 },
-    Day { date = "20190502", open = 1913.3125, high = 1921.5625, low = 1881.875, close = 1900.8125, volume = 3962915 },
-    Day { date = "20190503", open = 1949, high = 1964.375, low = 1936, close = 1962.4375, volume = 6381564 },
-    Day { date = "20190506", open = 1918, high = 1959, low = 1910.5, close = 1950.5625, volume = 5417841 },
-    Day { date = "20190507", open = 1940, high = 1949.125, low = 1903.375, close = 1921, volume = 5902134 },
-    Day { date = "20190508", open = 1918.875, high = 1935.375, low = 1910, close = 1917.75, volume = 4078568 },
-    Day { date = "20190509", open = 1900, high = 1909.375, low = 1876, close = 1899.875, volume = 5308263 },
-    Day { date = "20190510", open = 1898, high = 1903.8125, low = 1856, close = 1890, volume = 5717994 },
-    Day { date = "20190513", open = 1836.5625, high = 1846.5625, low = 1818, close = 1822.6875, volume = 5783410 },
-    Day { date = "20190514", open = 1839.5, high = 1852.4375, low = 1815.75, close = 1840.125, volume = 4629107 },
-    Day { date = "20190515", open = 1827.9375, high = 1874.4375, low = 1823, close = 1871.125, volume = 4692642 },
-    Day { date = "20190516", open = 1885.9375, high = 1917.5, low = 1882.3125, close = 1907.5625, volume = 4707822 },
-    Day { date = "20190517", open = 1893.0625, high = 1910.5, low = 1867.3125, close = 1869, volume = 4736618 },
-    Day { date = "20190520", open = 1852.6875, high = 1867.75, low = 1835.5625, close = 1859, volume = 3798198 },
-    Day { date = "20190521", open = 1874.8125, high = 1879, low = 1846, close = 1857.5, volume = 4005122 },
-    Day { date = "20190522", open = 1851.75, high = 1871.5, low = 1851, close = 1859.6875, volume = 2936601 },
-    Day { date = "20190523", open = 1836.5625, high = 1844, low = 1804.1875, close = 1815.5, volume = 4424265 },
-    Day { date = "20190524", open = 1835.875, high = 1841.75, low = 1817.875, close = 1823.25, volume = 3369673 },
-    Day { date = "20190528", open = 1832.75, high = 1849.25, low = 1827.375, close = 1836.4375, volume = 3199965 },
-    Day { date = "20190529", open = 1823.125, high = 1830, low = 1807.5625, close = 1819.1875, volume = 4279025 },
-    Day { date = "20190530", open = 1825.5, high = 1829.5, low = 1807.8125, close = 1816.3125, volume = 3146850 },
-    Day { date = "20190531", open = 1790, high = 1795.5625, low = 1772.6875, close = 1775.0625, volume = 4618819 },
-    Day { date = "20190603", open = 1760, high = 1766.3125, low = 1672, close = 1692.6875, volume = 9098708 },
-    Day { date = "20190604", open = 1699.25, high = 1730.8125, low = 1680.875, close = 1729.5625, volume = 5679121 },
-    Day { date = "20190605", open = 1749.625, high = 1752, low = 1715.25, close = 1738.5, volume = 4239782 },
-    Day { date = "20190606", open = 1737.6875, high = 1760, low = 1726.125, close = 1754.375, volume = 3689272 },
-    Day { date = "20190607", open = 1763.6875, high = 1806.25, low = 1759.5, close = 1804, volume = 4808246 },
-    Day { date = "20190610", open = 1822, high = 1884.875, low = 1818, close = 1860.625, volume = 5371007 },
-    Day { date = "20190611", open = 1883.25, high = 1893.6875, low = 1858, close = 1863.6875, volume = 4042694 },
-    Day { date = "20190612", open = 1854, high = 1865, low = 1844.375, close = 1855.3125, volume = 2678335 },
-    Day { date = "20190613", open = 1866.75, high = 1883.0625, low = 1862.25, close = 1870.3125, volume = 2795810 },
-    Day { date = "20190614", open = 1864, high = 1876, low = 1859, close = 1869.6875, volume = 2851163 },
-    Day { date = "20190617", open = 1876.5, high = 1895.6875, low = 1875.4375, close = 1886, volume = 2634342 },
-    Day { date = "20190618", open = 1901.375, high = 1921.6875, low = 1899.8125, close = 1901.375, volume = 3895728 },
-    Day { date = "20190619", open = 1907.8125, high = 1919.5625, low = 1892.5, close = 1908.8125, volume = 2895347 },
-    Day { date = "20190620", open = 1933.3125, high = 1935.1875, low = 1905.8125, close = 1918.1875, volume = 3217153 },
-    Day { date = "20190621", open = 1916.125, high = 1925.9375, low = 1907.5625, close = 1911.3125, volume = 3933576 },
-    Day { date = "20190624", open = 1912.6875, high = 1916.875, low = 1901.3125, close = 1913.875, volume = 2282969 },
-    Day { date = "20190625", open = 1911.8125, high = 1916.375, low = 1872.4375, close = 1878.25, volume = 3012347 },
-    Day { date = "20190626", open = 1892.5, high = 1903.8125, low = 1887.3125, close = 1897.8125, volume = 2441910 },
-    Day { date = "20190627", open = 1902, high = 1911.25, low = 1898.0625, close = 1904.25, volume = 2141721 },
-    Day { date = "20190628", open = 1909.125, high = 1912.9375, low = 1884, close = 1893.625, volume = 3037358 },
-    Day { date = "20190701", open = 1923, high = 1929.8125, low = 1914.6875, close = 1922.1875, volume = 3203347 },
-    Day { date = "20190702", open = 1919.375, high = 1934.8125, low = 1906.625, close = 1934.3125, volume = 2651299 },
-    Day { date = "20190703", open = 1935.875, high = 1941.5625, low = 1930.5, close = 1939, volume = 1690294 },
-    Day { date = "20190705", open = 1928.625, high = 1945.875, low = 1925.3125, close = 1942.9375, volume = 2628359 },
-    Day { date = "20190708", open = 1934.125, high = 1956, low = 1928.25, close = 1952.3125, volume = 2883371 },
-    Day { date = "20190709", open = 1947.8125, high = 1990, low = 1943.5, close = 1988.3125, volume = 4345698 },
-    Day { date = "20190710", open = 1996.5, high = 2024.9375, low = 1995.375, close = 2017.4375, volume = 4931902 },
-    Day { date = "20190711", open = 2025.625, high = 2035.8125, low = 1995.3125, close = 2001.0625, volume = 4317766 },
-    Day { date = "20190712", open = 2008.25, high = 2017, low = 2003.875, close = 2011, volume = 2509297 },
-    Day { date = "20190715", open = 2021.375, high = 2022.875, low = 2001.5625, close = 2021, volume = 2981343 },
-    Day { date = "20190716", open = 2010.5625, high = 2026.3125, low = 2001.25, close = 2009.875, volume = 2618198 },
-    Day { date = "20190717", open = 2007.0625, high = 2012, low = 1992, close = 1992, volume = 2558809 },
-    Day { date = "20190718", open = 1980, high = 1987.5, low = 1951.5625, close = 1977.875, volume = 3504252 },
-    Day { date = "20190719", open = 1991.1875, high = 1996, low = 1962.25, close = 1964.5, volume = 3185612 },
-    Day { date = "20190722", open = 1971.125, high = 1989, low = 1958.25, close = 1985.625, volume = 2908111 },
-    Day { date = "20190723", open = 1996, high = 1997.8125, low = 1973.125, close = 1994.5, volume = 2703480 },
-    Day { date = "20190724", open = 1969.3125, high = 2001.3125, low = 1965.875, close = 2000.8125, volume = 2631300 },
-    Day { date = "20190725", open = 2001, high = 2001.1875, low = 1972.75, close = 1973.8125, volume = 4136461 },
-    Day { date = "20190726", open = 1942, high = 1950.875, low = 1924.5, close = 1943.0625, volume = 4927143 },
-    Day { date = "20190729", open = 1930, high = 1932.25, low = 1890.5625, close = 1912.4375, volume = 4493190 },
-    Day { date = "20190730", open = 1891.125, high = 1909.875, low = 1883.5, close = 1898.5, volume = 2910888 },
-    Day { date = "20190731", open = 1898.125, high = 1899.5625, low = 1849.4375, close = 1866.75, volume = 4470727 },
-    Day { date = "20190801", open = 1871.75, high = 1897.9375, low = 1844, close = 1855.3125, volume = 4713311 },
-    Day { date = "20190802", open = 1845.0625, high = 1846.375, low = 1808, close = 1823.25, volume = 4956225 },
-    Day { date = "20190805", open = 1770.25, high = 1788.6875, low = 1748.75, close = 1765.125, volume = 6058212 },
-    Day { date = "20190806", open = 1792.25, high = 1793.75, low = 1753.375, close = 1787.8125, volume = 5070258 },
-    Day { date = "20190807", open = 1774, high = 1798.9375, low = 1757, close = 1793.375, volume = 4526884 },
-    Day { date = "20190808", open = 1806, high = 1834.25, low = 1798.125, close = 1832.875, volume = 3701242 },
-    Day { date = "20190809", open = 1828.9375, high = 1831.0625, low = 1802.25, close = 1807.5625, volume = 2879770 },
-    Day { date = "20190812", open = 1796, high = 1801, low = 1777, close = 1784.9375, volume = 2905498 },
-    Day { date = "20190813", open = 1783, high = 1831.75, low = 1780, close = 1824.3125, volume = 4075021 },
-    Day { date = "20190814", open = 1793, high = 1795.625, low = 1757.1875, close = 1762.9375, volume = 4893649 },
-    Day { date = "20190815", open = 1782, high = 1788, low = 1761.9375, close = 1776.125, volume = 3809948 },
-    Day { date = "20190816", open = 1792.875, high = 1802.9375, low = 1784.5625, close = 1792.5625, volume = 3054240 },
-    Day { date = "20190819", open = 1818.0625, high = 1826, low = 1812.625, close = 1816.125, volume = 2820303 },
-    Day { date = "20190820", open = 1814.5, high = 1816.8125, low = 1799.875, close = 1801.375, volume = 1932835 },
-    Day { date = "20190821", open = 1819.375, high = 1829.5625, low = 1815, close = 1823.5625, volume = 2039231 },
-    Day { date = "20190822", open = 1828, high = 1829.4375, low = 1800.125, close = 1805.625, volume = 2658388 },
-    Day { date = "20190823", open = 1793, high = 1804.875, low = 1745.25, close = 1749.625, volume = 5277898 },
-    Day { date = "20190826", open = 1766.9375, high = 1770, low = 1743.5, close = 1768.875, volume = 3085320 },
-    Day { date = "20190827", open = 1775.75, high = 1779.375, low = 1746.6875, close = 1761.8125, volume = 3027245 },
-    Day { date = "20190828", open = 1755, high = 1767.875, low = 1744.0625, close = 1764.25, volume = 2421893 },
-    Day { date = "20190829", open = 1783, high = 1798.5625, low = 1777.25, close = 1786.375, volume = 3018012 },
-    Day { date = "20190830", open = 1797.5, high = 1799.75, low = 1764.5625, close = 1776.3125, volume = 2983424 },
-    Day { date = "20190903", open = 1770, high = 1800.8125, low = 1768, close = 1789.8125, volume = 3546859 },
-    Day { date = "20190904", open = 1805, high = 1807.625, low = 1796.25, close = 1800.625, volume = 2326228 },
-    Day { date = "20190905", open = 1821.9375, high = 1842, low = 1815.5625, close = 1840.75, volume = 3325189 },
-    Day { date = "20190906", open = 1838.25, high = 1840.625, low = 1826.375, close = 1833.5, volume = 2496933 },
-    Day { date = "20190909", open = 1841, high = 1850, low = 1824.625, close = 1831.375, volume = 2999515 },
-    Day { date = "20190910", open = 1822.75, high = 1825.8125, low = 1805.3125, close = 1820.5625, volume = 2613879 },
-    Day { date = "20190911", open = 1812.125, high = 1833.4375, low = 1809.0625, close = 1823, volume = 2432767 },
-    Day { date = "20190912", open = 1837.625, high = 1853.6875, low = 1834.25, close = 1843.5625, volume = 2823505 },
-    Day { date = "20190913", open = 1842, high = 1846.125, low = 1835.1875, close = 1839.3125, volume = 1971317 },
-    Day { date = "20190916", open = 1824, high = 1825.6875, low = 1800.1875, close = 1807.8125, volume = 3675473 },
-    Day { date = "20190917", open = 1807.0625, high = 1824, low = 1804.125, close = 1822.5625, volume = 2033058 },
-    Day { date = "20190918", open = 1817.0625, high = 1822.0625, low = 1795.5, close = 1817.4375, volume = 2536012 },
-    Day { date = "20190919", open = 1821, high = 1832.5625, low = 1817.875, close = 1821.5, volume = 2078335 },
-    Day { date = "20190920", open = 1821.6875, high = 1830.625, low = 1780.9375, close = 1794.1875, volume = 5555839 },
-    Day { date = "20190923", open = 1777, high = 1792.6875, low = 1767.3125, close = 1785.3125, volume = 3139142 },
-    Day { date = "20190924", open = 1790.625, high = 1795.6875, low = 1735.5625, close = 1741.625, volume = 4637901 },
-    Day { date = "20190925", open = 1747.375, high = 1773, low = 1723, close = 1768.3125, volume = 3531098 },
-    Day { date = "20190926", open = 1762.8125, high = 1763.375, low = 1731.5, close = 1739.8125, volume = 3571952 },
-    Day { date = "20190927", open = 1748, high = 1749.125, low = 1713.8125, close = 1725.4375, volume = 3948029 },
-    Day { date = "20190930", open = 1727, high = 1737.4375, low = 1709.25, close = 1735.9375, volume = 2760768 },
-    Day { date = "20191001", open = 1746, high = 1755.625, low = 1728.4375, close = 1735.625, volume = 3170460 },
-    Day { date = "20191002", open = 1727.75, high = 1728.875, low = 1705, close = 1713.25, volume = 3338476 },
-    Day { date = "20191003", open = 1713, high = 1725, low = 1685.0625, close = 1724.4375, volume = 3624371 },
-    Day { date = "20191004", open = 1726, high = 1740.5625, low = 1719.25, close = 1739.625, volume = 2489277 },
-    Day { date = "20191007", open = 1731.625, high = 1747.8125, low = 1723.6875, close = 1732.6875, volume = 2187598 },
-    Day { date = "20191008", open = 1722.5, high = 1727, low = 1705, close = 1705.5, volume = 2626840 },
-    Day { date = "20191009", open = 1719.625, high = 1729.9375, low = 1714.375, close = 1722, volume = 2089335 },
-    Day { date = "20191010", open = 1725.25, high = 1738.3125, low = 1713.75, close = 1720.25, volume = 2721531 },
-    Day { date = "20191011", open = 1742.9375, high = 1745.4375, low = 1729.875, close = 1731.9375, volume = 3279534 },
-    Day { date = "20191014", open = 1728.9375, high = 1741.875, low = 1722, close = 1736.4375, volume = 1928898 },
-    Day { date = "20191015", open = 1742.125, high = 1776.4375, low = 1740.625, close = 1767.375, volume = 3129244 },
-    Day { date = "20191016", open = 1773.3125, high = 1786.25, low = 1770.5, close = 1777.4375, volume = 2804068 },
-    Day { date = "20191017", open = 1796.5, high = 1798.875, low = 1782, close = 1787.5, volume = 2713773 },
-    Day { date = "20191018", open = 1787.8125, high = 1794, low = 1749.1875, close = 1757.5, volume = 3366091 },
-    Day { date = "20191021", open = 1769.6875, high = 1785.875, low = 1765, close = 1785.6875, volume = 2224902 },
-    Day { date = "20191022", open = 1788.125, high = 1789.75, low = 1762, close = 1765.75, volume = 2234425 },
-    Day { date = "20191023", open = 1761.3125, high = 1770.0625, low = 1742, close = 1762.1875, volume = 2190380 },
-    Day { date = "20191024", open = 1771.0625, high = 1788.3125, low = 1760.25, close = 1780.75, volume = 5204350 },
-    Day { date = "20191025", open = 1697.5625, high = 1764.1875, low = 1695, close = 1761.3125, volume = 9626402 },
-    Day { date = "20191028", open = 1748.0625, high = 1778.6875, low = 1742.5, close = 1777.0625, volume = 3708851 },
-    Day { date = "20191029", open = 1774.8125, high = 1777, low = 1755.8125, close = 1762.6875, volume = 2276855 },
-    Day { date = "20191030", open = 1760.25, high = 1782.375, low = 1759.125, close = 1780, volume = 2449405 },
-    Day { date = "20191031", open = 1776, high = 1792, low = 1771.5, close = 1776.6875, volume = 2781185 },
-    Day { date = "20191101", open = 1788, high = 1797.4375, low = 1785.1875, close = 1791.4375, volume = 2790354 },
-    Day { date = "20191104", open = 1801, high = 1815.0625, low = 1801, close = 1804.6875, volume = 2771922 },
-    Day { date = "20191105", open = 1809.1875, high = 1810.25, low = 1794, close = 1801.6875, volume = 1885543 },
-    Day { date = "20191106", open = 1801, high = 1802.5, low = 1788.5625, close = 1795.75, volume = 2029783 },
-    Day { date = "20191107", open = 1803.75, high = 1805.875, low = 1783.5, close = 1788.1875, volume = 2651086 },
-    Day { date = "20191108", open = 1787.875, high = 1789.875, low = 1774.0625, close = 1785.875, volume = 2126198 },
-    Day { date = "20191111", open = 1778, high = 1780, low = 1767.125, close = 1771.625, volume = 1947810 },
-    Day { date = "20191112", open = 1774.6875, high = 1786.25, low = 1771.9375, close = 1778, volume = 2038925 },
-    Day { date = "20191113", open = 1773.375, high = 1775, low = 1747.3125, close = 1753.125, volume = 2926892 },
-    Day { date = "20191114", open = 1751.4375, high = 1766.5625, low = 1749.5625, close = 1754.625, volume = 2269417 },
-    Day { date = "20191115", open = 1760.0625, high = 1761.6875, low = 1732.875, close = 1739.5, volume = 3931141 },
-    Day { date = "20191118", open = 1738.3125, high = 1753.6875, low = 1722.6875, close = 1752.5, volume = 2841907 },
-    Day { date = "20191119", open = 1757, high = 1760.6875, low = 1743, close = 1752.8125, volume = 2274535 },
-    Day { date = "20191120", open = 1749.125, high = 1762.5, low = 1734.125, close = 1745.5, volume = 2793759 },
-    Day { date = "20191121", open = 1743, high = 1746.875, low = 1730.375, close = 1734.6875, volume = 2662938 },
-    Day { date = "20191122", open = 1739, high = 1746.4375, low = 1731, close = 1745.75, volume = 2479081 },
-    Day { date = "20191125", open = 1753.25, high = 1777.4375, low = 1753.25, close = 1773.8125, volume = 3489467 },
-    Day { date = "20191126", open = 1779.9375, high = 1797, low = 1778.375, close = 1796.9375, volume = 3190428 },
-    Day { date = "20191127", open = 1801, high = 1824.5, low = 1797.3125, close = 1818.5, volume = 3035846 },
-    Day { date = "20191129", open = 1817.75, high = 1824.6875, low = 1800.8125, close = 1800.8125, volume = 1923440 },
-    Day { date = "20191202", open = 1804.375, high = 1805.5625, low = 1762.6875, close = 1781.625, volume = 3931750 },
-    Day { date = "20191203", open = 1760, high = 1772.875, low = 1747.25, close = 1769.9375, volume = 3529582 },
-    Day { date = "20191204", open = 1774, high = 1789.0625, low = 1760.25, close = 1760.6875, volume = 2680700 },
-    Day { date = "20191205", open = 1763.5, high = 1763.5, low = 1740, close = 1740.5, volume = 2827852 },
-    Day { date = "20191206", open = 1751.1875, high = 1754.375, low = 1740.125, close = 1751.625, volume = 3119979 },
-    Day { date = "20191209", open = 1750.6875, high = 1766.875, low = 1745.625, close = 1749.5, volume = 2502489 },
-    Day { date = "20191210", open = 1747.375, high = 1750.6875, low = 1735, close = 1739.1875, volume = 2515644 },
-    Day { date = "20191211", open = 1741.6875, high = 1750, low = 1735.6875, close = 1748.75, volume = 2101318 },
-    Day { date = "20191212", open = 1750, high = 1764, low = 1745.4375, close = 1760.3125, volume = 3103949 },
-    Day { date = "20191213", open = 1765, high = 1769, low = 1755, close = 1760.9375, volume = 2747909 },
-    Day { date = "20191216", open = 1767, high = 1769.5, low = 1757.0625, close = 1769.1875, volume = 3149345 },
-    Day { date = "20191217", open = 1778, high = 1792, low = 1777.375, close = 1790.6875, volume = 3646697 },
-    Day { date = "20191218", open = 1795, high = 1798.1875, low = 1782.375, close = 1784, volume = 3354137 },
-    Day { date = "20191219", open = 1780.5, high = 1793, low = 1774.0625, close = 1792.25, volume = 2738320 },
-    Day { date = "20191220", open = 1799.625, high = 1803, low = 1782.4375, close = 1786.5, volume = 5152460 },
-    Day { date = "20191223", open = 1788.25, high = 1793, low = 1784.5, close = 1793, volume = 2137493 },
-    Day { date = "20191224", open = 1793.8125, high = 1795.5625, low = 1787.5625, close = 1789.1875, volume = 881337 },
-    Day { date = "20191226", open = 1801, high = 1870.4375, low = 1799.5, close = 1868.75, volume = 6024608 },
-    Day { date = "20191227", open = 1882.9375, high = 1901.375, low = 1866, close = 1869.8125, volume = 6188754 },
-    Day { date = "20191230", open = 1874, high = 1884, low = 1840.625, close = 1846.875, volume = 3677306 },
-    Day { date = "20191231", open = 1842, high = 1853.25, low = 1832.25, close = 1847.8125, volume = 2510380 },
-    Day { date = "20200102", open = 1875, high = 1898, low = 1864.125, close = 1898, volume = 4035910 },
-    Day { date = "20200103", open = 1864.5, high = 1886.1875, low = 1864.5, close = 1875, volume = 3766604 },
-    Day { date = "20200106", open = 1860, high = 1903.6875, low = 1860, close = 1902.875, volume = 4065698 },
-    Day { date = "20200107", open = 1904.5, high = 1913.875, low = 1892.0625, close = 1906.875, volume = 4134010 },
-    Day { date = "20200108", open = 1898.0625, high = 1911, low = 1886.4375, close = 1892, volume = 3511966 },
-    Day { date = "20200109", open = 1909.875, high = 1917.8125, low = 1895.8125, close = 1901.0625, volume = 3174962 },
-    Day { date = "20200110", open = 1905.375, high = 1906.9375, low = 1880, close = 1883.1875, volume = 2856959 },
-    Day { date = "20200113", open = 1891.3125, high = 1898, low = 1880.8125, close = 1891.3125, volume = 2785844 },
-    Day { date = "20200114", open = 1885.875, high = 1887.125, low = 1858.5625, close = 1869.4375, volume = 3446381 },
-    Day { date = "20200115", open = 1872.25, high = 1878.875, low = 1855.0625, close = 1862, volume = 2896592 },
-    Day { date = "20200116", open = 1883, high = 1885.5625, low = 1866, close = 1877.9375, volume = 2659493 },
-    Day { date = "20200117", open = 1885.875, high = 1886.625, low = 1857.25, close = 1864.75, volume = 3997340 },
-    Day { date = "20200121", open = 1865, high = 1894.25, low = 1860, close = 1892, volume = 3707785 },
-    Day { date = "20200122", open = 1896.0625, high = 1902.5, low = 1883.3125, close = 1887.4375, volume = 3216257 },
-    Day { date = "20200123", open = 1885.125, high = 1890, low = 1872.75, close = 1884.5625, volume = 2484613 },
-    Day { date = "20200124", open = 1891.375, high = 1895, low = 1847.4375, close = 1861.625, volume = 3766181 },
-    Day { date = "20200127", open = 1820, high = 1841, low = 1815.3125, close = 1828.3125, volume = 3528509 },
-    Day { date = "20200128", open = 1840.5, high = 1858.125, low = 1830, close = 1853.25, volume = 2808040 },
-    Day { date = "20200129", open = 1864, high = 1874.75, low = 1855, close = 1858, volume = 2101390 },
-    Day { date = "20200130", open = 1858, high = 1872.875, low = 1850.625, close = 1870.6875, volume = 6327438 },
-    Day { date = "20200131", open = 2051.5, high = 2055.75, low = 2002.25, close = 2008.75, volume = 15567283 },
-    Day { date = "20200203", open = 2010.625, high = 2048.5, low = 2000.25, close = 2004.1875, volume = 5899094 },
-    Day { date = "20200204", open = 2029.875, high = 2059.8125, low = 2015.375, close = 2049.6875, volume = 5289338 },
-    Day { date = "20200205", open = 2071, high = 2071, low = 2032, close = 2039.875, volume = 4376174 },
-    Day { date = "20200206", open = 2041, high = 2056.3125, low = 2024.8125, close = 2050.25, volume = 3182954 },
-    Day { date = "20200207", open = 2042, high = 2098.5, low = 2038.125, close = 2079.25, volume = 5095347 },
-    Day { date = "20200210", open = 2085, high = 2135.625, low = 2084.9375, close = 2133.9375, volume = 5056235 },
-    Day { date = "20200211", open = 2150.875, high = 2185.9375, low = 2136, close = 2150.8125, volume = 5746011 },
-    Day { date = "20200212", open = 2163.1875, high = 2180.25, low = 2155.3125, close = 2160, volume = 3334264 },
-    Day { date = "20200213", open = 2145, high = 2170.25, low = 2142, close = 2149.875, volume = 3031791 },
-    Day { date = "20200214", open = 2155.6875, high = 2159.0625, low = 2125.875, close = 2134.875, volume = 2606169 },
-    Day { date = "20200218", open = 2125, high = 2166.0625, low = 2124.125, close = 2155.6875, volume = 2951070 },
-    Day { date = "20200219", open = 2167.8125, high = 2185.125, low = 2161.125, close = 2170.25, volume = 2561165 },
-    Day { date = "20200220", open = 2173.0625, high = 2176.8125, low = 2127.4375, close = 2153.125, volume = 3131342 },
-    Day { date = "20200221", open = 2142.125, high = 2144.5625, low = 2088, close = 2096, volume = 4650740 },
-    Day { date = "20200224", open = 2003.1875, high = 2039.3125, low = 1988, close = 2009.3125, volume = 6546997 },
-    Day { date = "20200225", open = 2026.4375, high = 2034.625, low = 1958.4375, close = 1972.75, volume = 6219094 },
-    Day { date = "20200226", open = 1970.25, high = 2014.6875, low = 1960.4375, close = 1979.5625, volume = 5240402 },
-    Day { date = "20200227", open = 1934.375, high = 1975, low = 1882.75, close = 1884.3125, volume = 8143993 },
-    Day { date = "20200228", open = 1814.625, high = 1889.75, low = 1811.125, close = 1883.75, volume = 9493797 },
-    Day { date = "20200302", open = 1906.5, high = 1954.5, low = 1870, close = 1953.9375, volume = 6761651 },
-    Day { date = "20200303", open = 1975.375, high = 1996.3125, low = 1888.0625, close = 1909, volume = 7534491 },
-    Day { date = "20200304", open = 1946.5625, high = 1978, low = 1922, close = 1975.8125, volume = 4772919 },
-    Day { date = "20200305", open = 1933, high = 1960.75, low = 1910, close = 1924, volume = 4748210 },
-    Day { date = "20200306", open = 1875, high = 1910.875, low = 1869.5, close = 1901.0625, volume = 5273580 },
-    Day { date = "20200309", open = 1773.875, high = 1862.75, low = 1761.3125, close = 1800.625, volume = 7813232 },
-    Day { date = "20200310", open = 1870.875, high = 1894.25, low = 1818.1875, close = 1891.8125, volume = 7133310 },
-    Day { date = "20200311", open = 1857.875, high = 1871.3125, low = 1801.5, close = 1820.875, volume = 5646831 },
-    Day { date = "20200312", open = 1722, high = 1765, low = 1675, close = 1676.625, volume = 11346214 },
-    Day { date = "20200313", open = 1755, high = 1786.3125, low = 1680.625, close = 1785, volume = 8809725 },
-    Day { date = "20200316", open = 1641.5, high = 1759.4375, low = 1626.0625, close = 1689.125, volume = 8917265 },
-    Day { date = "20200317", open = 1775.5, high = 1857.75, low = 1689.25, close = 1807.8125, volume = 10917129 },
-    Day { date = "20200318", open = 1750, high = 1841.6875, low = 1745, close = 1830, volume = 9645218 },
-    Day { date = "20200319", open = 1860, high = 1945, low = 1832.625, close = 1880.9375, volume = 10399943 },
-    Day { date = "20200320", open = 1926.3125, high = 1957, low = 1820.75, close = 1846.0625, volume = 9817850 },
-    Day { date = "20200323", open = 1827.75, high = 1919.375, low = 1812, close = 1902.8125, volume = 7808489 },
-    Day { date = "20200324", open = 1951.5, high = 1955, low = 1900.3125, close = 1940.125, volume = 7147080 },
-    Day { date = "20200325", open = 1920.6875, high = 1950.25, low = 1885.75, close = 1885.8125, volume = 6479073 },
-    Day { date = "20200326", open = 1902, high = 1956.5, low = 1889.3125, close = 1955.5, volume = 6235118 },
-    Day { date = "20200327", open = 1930.875, high = 1939.8125, low = 1899.9375, close = 1900.125, volume = 5387897 },
-    Day { date = "20200330", open = 1922.8125, high = 1973.625, low = 1912.3125, close = 1963.9375, volume = 6126087 },
-    Day { date = "20200331", open = 1964.375, high = 1993, low = 1944, close = 1949.75, volume = 5123626 },
-    Day { date = "20200401", open = 1933, high = 1944.9375, low = 1893, close = 1907.6875, volume = 4121875 },
-    Day { date = "20200402", open = 1901.625, high = 1927.5, low = 1890, close = 1918.8125, volume = 4335985 },
-    Day { date = "20200403", open = 1911.125, high = 1926.3125, low = 1889.125, close = 1906.5625, volume = 3609870 },
-    Day { date = "20200406", open = 1936, high = 1998.5, low = 1930, close = 1997.5625, volume = 5773181 },
-    Day { date = "20200407", open = 2017.125, high = 2035.75, low = 1997.625, close = 2011.625, volume = 5113983 },
-    Day { date = "20200408", open = 2021, high = 2044, low = 2011.125, close = 2043, volume = 3977313 },
-    Day { date = "20200409", open = 2044.3125, high = 2053, low = 2017.6875, close = 2042.75, volume = 4655617 },
-    Day { date = "20200413", open = 2040, high = 2180, low = 2038, close = 2168.875, volume = 6716709 },
-    Day { date = "20200414", open = 2200.5, high = 2292, low = 2186.1875, close = 2283.3125, volume = 8087193 },
-    Day { date = "20200415", open = 2257.6875, high = 2333.375, low = 2245, close = 2307.6875, volume = 6866567 },
-    Day { date = "20200416", open = 2346, high = 2461, low = 2335, close = 2408.1875, volume = 12038201 },
-    Day { date = "20200417", open = 2372.3125, high = 2400, low = 2316, close = 2375, volume = 7930010 },
-    Day { date = "20200420", open = 2389.9375, high = 2445, low = 2386.0625, close = 2393.625, volume = 5770694 },
-    Day { date = "20200421", open = 2416.625, high = 2428.3125, low = 2279.6875, close = 2328.125, volume = 7476679 },
-    Day { date = "20200422", open = 2369, high = 2394, low = 2351, close = 2363.5, volume = 4218295 },
-    Day { date = "20200423", open = 2400, high = 2424.25, low = 2382.0625, close = 2399.4375, volume = 5066552 },
-    Day { date = "20200424", open = 2417, high = 2420.4375, low = 2382, close = 2410.25, volume = 3831797 },
-    Day { date = "20200427", open = 2443.1875, high = 2444.875, low = 2363, close = 2376, volume = 5645645 },
-    Day { date = "20200428", open = 2372.125, high = 2373.5, low = 2306, close = 2314.0625, volume = 5269446 },
-    Day { date = "20200429", open = 2330, high = 2391.875, low = 2310, close = 2372.6875, volume = 4591593 },
-    Day { date = "20200430", open = 2419.8125, high = 2475, low = 2396, close = 2474, volume = 9534611 },
-    Day { date = "20200501", open = 2336.8125, high = 2362.4375, low = 2258.1875, close = 2286.0625, volume = 9696163 },
-    Day { date = "20200504", open = 2256.375, high = 2327, low = 2256.375, close = 2316, volume = 4865926 },
-    Day { date = "20200505", open = 2340, high = 2351, low = 2307.125, close = 2317.8125, volume = 3242496 },
-    Day { date = "20200506", open = 2329.4375, high = 2357.4375, low = 2320, close = 2351.25, volume = 3117814 },
-    Day { date = "20200507", open = 2374.75, high = 2376, low = 2343.125, close = 2367.625, volume = 3396411 },
-    Day { date = "20200508", open = 2372.125, high = 2387.25, low = 2357, close = 2379.625, volume = 3211228 },
-    Day { date = "20200511", open = 2374.6875, high = 2419.6875, low = 2372.125, close = 2409, volume = 3259231 },
-    Day { date = "20200512", open = 2411.875, high = 2419, low = 2355, close = 2356.9375, volume = 3074916 },
-    Day { date = "20200513", open = 2366.8125, high = 2407.6875, low = 2337.8125, close = 2367.9375, volume = 4782919 },
-    Day { date = "20200514", open = 2361, high = 2391.375, low = 2353.1875, close = 2388.875, volume = 3648128 },
-    Day { date = "20200515", open = 2368.5, high = 2411, low = 2356.375, close = 2409.75, volume = 4234951 },
-    Day { date = "20200518", open = 2404.375, high = 2433, low = 2384, close = 2426.25, volume = 4366572 },
-    Day { date = "20200519", open = 2429.8125, high = 2485, low = 2429, close = 2449.3125, volume = 4320498 },
-    Day { date = "20200520", open = 2477.875, high = 2500, low = 2467.25, close = 2497.9375, volume = 3998143 },
-    Day { date = "20200521", open = 2500, high = 2525.4375, low = 2442.5625, close = 2446.75, volume = 5114403 },
-    Day { date = "20200522", open = 2455, high = 2469.875, low = 2430.125, close = 2436.875, volume = 2867079 },
-    Day { date = "20200526", open = 2458, high = 2462, low = 2414.0625, close = 2421.875, volume = 3568200 },
-    Day { date = "20200527", open = 2405, high = 2413.5625, low = 2330, close = 2410.375, volume = 5056900 },
-    Day { date = "20200528", open = 2384.3125, high = 2437, low = 2378.25, close = 2401.125, volume = 3190200 },
-    Day { date = "20200529", open = 2415.9375, high = 2442.375, low = 2398.1875, close = 2442.375, volume = 3529300 },
-    Day { date = "20200601", open = 2448, high = 2476.9375, low = 2444.1875, close = 2471.0625, volume = 2928900 },
-    Day { date = "20200602", open = 2467, high = 2473.5, low = 2445.3125, close = 2472.4375, volume = 2529900 },
-    Day { date = "20200603", open = 2468, high = 2488, low = 2461.1875, close = 2478.375, volume = 2671000 },
-    Day { date = "20200604", open = 2477.4375, high = 2507.5625, low = 2450, close = 2460.625, volume = 2948700 },
-    Day { date = "20200605", open = 2444.5, high = 2488.625, low = 2437.125, close = 2483, volume = 3306400 },
-    Day { date = "20200608", open = 2500.1875, high = 2530, low = 2487.3125, close = 2524.0625, volume = 3970700 },
-    Day { date = "20200609", open = 2529.4375, high = 2626.4375, low = 2525, close = 2600.875, volume = 5176000 },
-    Day { date = "20200610", open = 2645, high = 2722.375, low = 2626.25, close = 2647.4375, volume = 4946000 },
-    Day { date = "20200611", open = 2603.5, high = 2671.375, low = 2536.25, close = 2557.9375, volume = 5800100 },
-    Day { date = "20200612", open = 2601.1875, high = 2621.5, low = 2503.375, close = 2545, volume = 5429600 },
-    Day { date = "20200615", open = 2526.625, high = 2584, low = 2508, close = 2572.6875, volume = 3865100 },
-    Day { date = "20200616", open = 2620, high = 2620, low = 2576, close = 2615.25, volume = 3585600 },
-    Day { date = "20200617", open = 2647.5, high = 2655, low = 2631.8125, close = 2641, volume = 2951100 },
-    Day { date = "20200618", open = 2647, high = 2659.625, low = 2636.125, close = 2654, volume = 2487800 },
-    Day { date = "20200619", open = 2678.0625, high = 2697.4375, low = 2659, close = 2675, volume = 5777000 },
-    Day { date = "20200622", open = 2684.5, high = 2715, low = 2669, close = 2713.8125, volume = 3208800 },
-    Day { date = "20200623", open = 2726, high = 2783.125, low = 2718.0625, close = 2764.4375, volume = 4231700 },
-    Day { date = "20200624", open = 2780, high = 2796, low = 2721, close = 2734.375, volume = 4526600 },
-    Day { date = "20200625", open = 2739.5625, high = 2756.25, low = 2712.125, close = 2754.5625, volume = 2968700 },
-    Day { date = "20200626", open = 2775.0625, high = 2782.5625, low = 2688, close = 2692.875, volume = 6500800 },
-    Day { date = "20200629", open = 2690, high = 2696.8125, low = 2630.0625, close = 2680.375, volume = 4223400 },
-    Day { date = "20200630", open = 2685.0625, high = 2769.625, low = 2675, close = 2758.8125, volume = 3769700 },
-    Day { date = "20200701", open = 2758, high = 2895, low = 2754, close = 2878.6875, volume = 6363400 },
-    Day { date = "20200702", open = 2912, high = 2955.5625, low = 2871.125, close = 2890.3125, volume = 6593400 },
-    Day { date = "20200706", open = 2935, high = 3059.875, low = 2930, close = 3057.0625, volume = 6880600 },
-    Day { date = "20200707", open = 3058.5625, high = 3069.5625, low = 2990, close = 3000.125, volume = 5257500 },
-    Day { date = "20200708", open = 3022.625, high = 3084, low = 3012.4375, close = 3081.125, volume = 5037600 },
-    Day { date = "20200709", open = 3116, high = 3193.875, low = 3074, close = 3182.625, volume = 6388700 },
-    Day { date = "20200710", open = 3191.75, high = 3215, low = 3135.6875, close = 3200, volume = 5486000 },
-    Day { date = "20200713", open = 3251.0625, high = 3344.3125, low = 3068.375, close = 3104, volume = 7720400 },
-    Day { date = "20200714", open = 3089, high = 3127.375, low = 2950, close = 3084, volume = 7231900 },
-    Day { date = "20200715", open = 3080.25, high = 3098.375, low = 2973.1875, close = 3008.875, volume = 5788900 },
-    Day { date = "20200716", open = 2971.0625, high = 3032, low = 2918.25, close = 2999.875, volume = 6394200 },
-    Day { date = "20200717", open = 3009, high = 3024, low = 2948.4375, close = 2962, volume = 4761300 },
-    Day { date = "20200720", open = 3000.1875, high = 3201.375, low = 2994, close = 3196.8125, volume = 7598176 },
-    Day { date = "20200721", open = 3232.5, high = 3240.5625, low = 3105.75, close = 3138.3125, volume = 6134965 },
-    Day { date = "20200722", open = 3125, high = 3150, low = 3065.25, close = 3099.9375, volume = 4104225 },
-    Day { date = "20200723", open = 3098.25, high = 3098.25, low = 2970, close = 2986.5625, volume = 5656906 },
-    Day { date = "20200724", open = 2930, high = 3031.5625, low = 2888, close = 3008.9375, volume = 5632413 },
-    Day { date = "20200727", open = 3062, high = 3098, low = 3015.75, close = 3055.1875, volume = 4074394 },
-    Day { date = "20200728", open = 3054.25, high = 3077.0625, low = 2995.75, close = 3000.3125, volume = 3126651 },
-    Day { date = "20200729", open = 3031, high = 3039.1875, low = 2996.75, close = 3033.5, volume = 2974060 },
-    Day { date = "20200730", open = 3014, high = 3092, low = 3005, close = 3051.875, volume = 6128265 },
-    Day { date = "20200731", open = 3244, high = 3246.8125, low = 3151, close = 3164.6875, volume = 8085500 },
-    Day { date = "20200803", open = 3180.5, high = 3184, low = 3104, close = 3111.875, volume = 5074700 },
-    Day { date = "20200804", open = 3101.1875, high = 3167.25, low = 3101.1875, close = 3138.8125, volume = 4694300 },
-    Day { date = "20200805", open = 3143.75, high = 3213.5625, low = 3127.3125, close = 3205, volume = 3930000 },
-    Day { date = "20200806", open = 3194.375, high = 3247.5, low = 3165.4375, close = 3225, volume = 3940600 },
-    Day { date = "20200807", open = 3224, high = 3240.8125, low = 3140.6875, close = 3167.4375, volume = 3929600 },
-    Day { date = "20200810", open = 3170.3125, high = 3172.5, low = 3101.5, close = 3148.1875, volume = 3167300 },
-    Day { date = "20200811", open = 3113.1875, high = 3159.25, low = 3073, close = 3080.6875, volume = 3718100 },
-    Day { date = "20200812", open = 3108, high = 3174.375, low = 3101.4375, close = 3162.25, volume = 3527200 },
-    Day { date = "20200813", open = 3183, high = 3217.5, low = 3155, close = 3161, volume = 3149000 },
-    Day { date = "20200814", open = 3178.1875, high = 3178.25, low = 3120, close = 3148, volume = 2751700 },
-    Day { date = "20200817", open = 3173.125, high = 3195, low = 3154.1875, close = 3182.4375, volume = 2691200 },
-    Day { date = "20200818", open = 3212, high = 3320, low = 3205.8125, close = 3312.5, volume = 5346000 },
-    Day { date = "20200819", open = 3303, high = 3315.875, low = 3256, close = 3260.5, volume = 4185100 },
-    Day { date = "20200820", open = 3252, high = 3312.625, low = 3238, close = 3297.375, volume = 3332500 },
-    Day { date = "20200821", open = 3295, high = 3314.375, low = 3275.375, close = 3284.75, volume = 3575900 },
-    Day { date = "20200824", open = 3310.125, high = 3380.3125, low = 3257.5625, close = 3307.4375, volume = 4666300 },
-    Day { date = "20200825", open = 3295, high = 3357.375, low = 3267, close = 3346.5, volume = 3992800 },
-    Day { date = "20200826", open = 3351.125, high = 3451.75, low = 3344.5625, close = 3441.875, volume = 6508700 },
-    Day { date = "20200827", open = 3450.0625, high = 3453, low = 3378, close = 3400, volume = 4264800 },
-    Day { date = "20200828", open = 3423, high = 3433.375, low = 3386.5, close = 3401.8125, volume = 2894100 },
-    Day { date = "20200831", open = 3409, high = 3495, low = 3405, close = 3450.9375, volume = 4185900 },
-    Day { date = "20200901", open = 3489.5625, high = 3513.875, low = 3467, close = 3499.125, volume = 3476400 },
-    Day { date = "20200902", open = 3547, high = 3552.25, low = 3486.6875, close = 3531.4375, volume = 3931500 },
-    Day { date = "20200903", open = 3485, high = 3488.4375, low = 3303, close = 3368, volume = 8161100 },
-    Day { date = "20200904", open = 3318, high = 3381.5, low = 3111.125, close = 3294.625, volume = 8781800 },
-    Day { date = "20200908", open = 3144, high = 3250.875, low = 3130, close = 3149.8125, volume = 6094200 },
-    Day { date = "20200909", open = 3203, high = 3303.1875, low = 3185, close = 3268.625, volume = 5188700 },
-    Day { date = "20200910", open = 3307.25, high = 3349.875, low = 3170.5625, close = 3175.125, volume = 5330700 },
-    Day { date = "20200911", open = 3208.6875, high = 3217.3125, low = 3084, close = 3116.25, volume = 5094000 },
-    Day { date = "20200914", open = 3172.9375, high = 3187.375, low = 3096, close = 3103, volume = 4529600 },
-    Day { date = "20200915", open = 3136.1875, high = 3175, low = 3108.9375, close = 3156.125, volume = 4021500 },
-    Day { date = "20200916", open = 3180, high = 3187.25, low = 3074.125, close = 3078.125, volume = 4512200 },
-    Day { date = "20200917", open = 3009.25, high = 3029.4375, low = 2972.5625, close = 3008.75, volume = 6449100 },
-    Day { date = "20200918", open = 3031.75, high = 3037.8125, low = 2905.5625, close = 2954.9375, volume = 8892600 },
-    Day { date = "20200921", open = 2906.5, high = 2962, low = 2871, close = 2960.5, volume = 6117900 },
-    Day { date = "20200922", open = 3033.8125, high = 3134, low = 3000.1875, close = 3129, volume = 6948800 },
-    Day { date = "20200923", open = 3120.4375, high = 3127, low = 2992.375, close = 2999.875, volume = 5652700 },
-    Day { date = "20200924", open = 2977.8125, high = 3069.3125, low = 2965, close = 3019.8125, volume = 5529400 },
-    Day { date = "20200925", open = 3054.875, high = 3101.5625, low = 2999, close = 3095.125, volume = 4615200 },
-    Day { date = "20200928", open = 3148.875, high = 3175.0625, low = 3117.1875, close = 3174.0625, volume = 4224200 },
-    Day { date = "20200929", open = 3175.375, high = 3188.25, low = 3132.5625, close = 3144.875, volume = 3495800 },
-    Day { date = "20200930", open = 3141.125, high = 3212.875, low = 3134, close = 3148.75, volume = 4883400 },
-    Day { date = "20201001", open = 3208, high = 3224, low = 3172, close = 3221.25, volume = 4971900 } ]
+-- All float values rounded to the nearest sixteenth for precise floating-point representation.\
+testStocksCompactJSON :: Text
+testStocksCompactJSON = 
+    "\
+    \[\
+    \    [\"AMZN\", [\
+    \        [\"20190401\", 1800.125, 1815.6875, 1798.75, 1814.1875, 4238752],\
+    \        [\"20190402\", 1811.0, 1820.0, 1805.125, 1814.0, 3448115],\
+    \        [\"20190403\", 1826.75, 1830.0, 1809.625, 1820.6875, 3980590],\
+    \        [\"20190404\", 1820.625, 1828.75, 1804.1875, 1818.875, 3623867],\
+    \        [\"20190405\", 1829.0, 1838.5625, 1825.1875, 1837.25, 3640476],\
+    \        [\"20190408\", 1833.25, 1850.1875, 1825.125, 1849.875, 3752841],\
+    \        [\"20190409\", 1845.5, 1853.0625, 1831.75, 1835.8125, 3714368],\
+    \        [\"20190410\", 1841.0, 1848.0, 1828.8125, 1847.3125, 2963973],\
+    \        [\"20190411\", 1848.6875, 1849.9375, 1840.3125, 1844.0625, 2654842],\
+    \        [\"20190412\", 1848.375, 1851.5, 1841.3125, 1843.0625, 3114413],\
+    \        [\"20190415\", 1842.0, 1846.875, 1818.875, 1844.875, 3724423],\
+    \        [\"20190416\", 1851.375, 1869.75, 1848.0, 1863.0625, 3044618],\
+    \        [\"20190417\", 1873.0, 1876.5, 1860.4375, 1864.8125, 2893517],\
+    \        [\"20190418\", 1868.8125, 1870.8125, 1859.5, 1861.6875, 2749882],\
+    \        [\"20190422\", 1855.375, 1888.4375, 1845.625, 1887.3125, 3373807],\
+    \        [\"20190423\", 1891.1875, 1929.25, 1889.5625, 1923.75, 4640441],\
+    \        [\"20190424\", 1925.0, 1929.6875, 1898.1875, 1901.75, 3675781],\
+    \        [\"20190425\", 1917.0, 1922.4375, 1900.3125, 1902.25, 6099101],\
+    \        [\"20190426\", 1929.0, 1951.0, 1898.0, 1950.625, 8432563],\
+    \        [\"20190429\", 1949.0, 1956.3125, 1934.0625, 1938.4375, 4021255],\
+    \        [\"20190430\", 1930.125, 1935.6875, 1906.9375, 1926.5, 3506007],\
+    \        [\"20190501\", 1933.0625, 1943.625, 1910.5625, 1911.5, 3116964],\
+    \        [\"20190502\", 1913.3125, 1921.5625, 1881.875, 1900.8125, 3962915],\
+    \        [\"20190503\", 1949.0, 1964.375, 1936.0, 1962.4375, 6381564],\
+    \        [\"20190506\", 1918.0, 1959.0, 1910.5, 1950.5625, 5417841],\
+    \        [\"20190507\", 1940.0, 1949.125, 1903.375, 1921.0, 5902134],\
+    \        [\"20190508\", 1918.875, 1935.375, 1910.0, 1917.75, 4078568],\
+    \        [\"20190509\", 1900.0, 1909.375, 1876.0, 1899.875, 5308263],\
+    \        [\"20190510\", 1898.0, 1903.8125, 1856.0, 1890.0, 5717994],\
+    \        [\"20190513\", 1836.5625, 1846.5625, 1818.0, 1822.6875, 5783410],\
+    \        [\"20190514\", 1839.5, 1852.4375, 1815.75, 1840.125, 4629107],\
+    \        [\"20190515\", 1827.9375, 1874.4375, 1823.0, 1871.125, 4692642],\
+    \        [\"20190516\", 1885.9375, 1917.5, 1882.3125, 1907.5625, 4707822],\
+    \        [\"20190517\", 1893.0625, 1910.5, 1867.3125, 1869.0, 4736618],\
+    \        [\"20190520\", 1852.6875, 1867.75, 1835.5625, 1859.0, 3798198],\
+    \        [\"20190521\", 1874.8125, 1879.0, 1846.0, 1857.5, 4005122],\
+    \        [\"20190522\", 1851.75, 1871.5, 1851.0, 1859.6875, 2936601],\
+    \        [\"20190523\", 1836.5625, 1844.0, 1804.1875, 1815.5, 4424265],\
+    \        [\"20190524\", 1835.875, 1841.75, 1817.875, 1823.25, 3369673],\
+    \        [\"20190528\", 1832.75, 1849.25, 1827.375, 1836.4375, 3199965],\
+    \        [\"20190529\", 1823.125, 1830.0, 1807.5625, 1819.1875, 4279025],\
+    \        [\"20190530\", 1825.5, 1829.5, 1807.8125, 1816.3125, 3146850],\
+    \        [\"20190531\", 1790.0, 1795.5625, 1772.6875, 1775.0625, 4618819],\
+    \        [\"20190603\", 1760.0, 1766.3125, 1672.0, 1692.6875, 9098708],\
+    \        [\"20190604\", 1699.25, 1730.8125, 1680.875, 1729.5625, 5679121],\
+    \        [\"20190605\", 1749.625, 1752.0, 1715.25, 1738.5, 4239782],\
+    \        [\"20190606\", 1737.6875, 1760.0, 1726.125, 1754.375, 3689272],\
+    \        [\"20190607\", 1763.6875, 1806.25, 1759.5, 1804.0, 4808246],\
+    \        [\"20190610\", 1822.0, 1884.875, 1818.0, 1860.625, 5371007],\
+    \        [\"20190611\", 1883.25, 1893.6875, 1858.0, 1863.6875, 4042694],\
+    \        [\"20190612\", 1854.0, 1865.0, 1844.375, 1855.3125, 2678335],\
+    \        [\"20190613\", 1866.75, 1883.0625, 1862.25, 1870.3125, 2795810],\
+    \        [\"20190614\", 1864.0, 1876.0, 1859.0, 1869.6875, 2851163],\
+    \        [\"20190617\", 1876.5, 1895.6875, 1875.4375, 1886.0, 2634342],\
+    \        [\"20190618\", 1901.375, 1921.6875, 1899.8125, 1901.375, 3895728],\
+    \        [\"20190619\", 1907.8125, 1919.5625, 1892.5, 1908.8125, 2895347],\
+    \        [\"20190620\", 1933.3125, 1935.1875, 1905.8125, 1918.1875, 3217153],\
+    \        [\"20190621\", 1916.125, 1925.9375, 1907.5625, 1911.3125, 3933576],\
+    \        [\"20190624\", 1912.6875, 1916.875, 1901.3125, 1913.875, 2282969],\
+    \        [\"20190625\", 1911.8125, 1916.375, 1872.4375, 1878.25, 3012347],\
+    \        [\"20190626\", 1892.5, 1903.8125, 1887.3125, 1897.8125, 2441910],\
+    \        [\"20190627\", 1902.0, 1911.25, 1898.0625, 1904.25, 2141721],\
+    \        [\"20190628\", 1909.125, 1912.9375, 1884.0, 1893.625, 3037358],\
+    \        [\"20190701\", 1923.0, 1929.8125, 1914.6875, 1922.1875, 3203347],\
+    \        [\"20190702\", 1919.375, 1934.8125, 1906.625, 1934.3125, 2651299],\
+    \        [\"20190703\", 1935.875, 1941.5625, 1930.5, 1939.0, 1690294],\
+    \        [\"20190705\", 1928.625, 1945.875, 1925.3125, 1942.9375, 2628359],\
+    \        [\"20190708\", 1934.125, 1956.0, 1928.25, 1952.3125, 2883371],\
+    \        [\"20190709\", 1947.8125, 1990.0, 1943.5, 1988.3125, 4345698],\
+    \        [\"20190710\", 1996.5, 2024.9375, 1995.375, 2017.4375, 4931902],\
+    \        [\"20190711\", 2025.625, 2035.8125, 1995.3125, 2001.0625, 4317766],\
+    \        [\"20190712\", 2008.25, 2017.0, 2003.875, 2011.0, 2509297],\
+    \        [\"20190715\", 2021.375, 2022.875, 2001.5625, 2021.0, 2981343],\
+    \        [\"20190716\", 2010.5625, 2026.3125, 2001.25, 2009.875, 2618198],\
+    \        [\"20190717\", 2007.0625, 2012.0, 1992.0, 1992.0, 2558809],\
+    \        [\"20190718\", 1980.0, 1987.5, 1951.5625, 1977.875, 3504252],\
+    \        [\"20190719\", 1991.1875, 1996.0, 1962.25, 1964.5, 3185612],\
+    \        [\"20190722\", 1971.125, 1989.0, 1958.25, 1985.625, 2908111],\
+    \        [\"20190723\", 1996.0, 1997.8125, 1973.125, 1994.5, 2703480],\
+    \        [\"20190724\", 1969.3125, 2001.3125, 1965.875, 2000.8125, 2631300],\
+    \        [\"20190725\", 2001.0, 2001.1875, 1972.75, 1973.8125, 4136461],\
+    \        [\"20190726\", 1942.0, 1950.875, 1924.5, 1943.0625, 4927143],\
+    \        [\"20190729\", 1930.0, 1932.25, 1890.5625, 1912.4375, 4493190],\
+    \        [\"20190730\", 1891.125, 1909.875, 1883.5, 1898.5, 2910888],\
+    \        [\"20190731\", 1898.125, 1899.5625, 1849.4375, 1866.75, 4470727],\
+    \        [\"20190801\", 1871.75, 1897.9375, 1844.0, 1855.3125, 4713311],\
+    \        [\"20190802\", 1845.0625, 1846.375, 1808.0, 1823.25, 4956225],\
+    \        [\"20190805\", 1770.25, 1788.6875, 1748.75, 1765.125, 6058212],\
+    \        [\"20190806\", 1792.25, 1793.75, 1753.375, 1787.8125, 5070258],\
+    \        [\"20190807\", 1774.0, 1798.9375, 1757.0, 1793.375, 4526884],\
+    \        [\"20190808\", 1806.0, 1834.25, 1798.125, 1832.875, 3701242],\
+    \        [\"20190809\", 1828.9375, 1831.0625, 1802.25, 1807.5625, 2879770],\
+    \        [\"20190812\", 1796.0, 1801.0, 1777.0, 1784.9375, 2905498],\
+    \        [\"20190813\", 1783.0, 1831.75, 1780.0, 1824.3125, 4075021],\
+    \        [\"20190814\", 1793.0, 1795.625, 1757.1875, 1762.9375, 4893649],\
+    \        [\"20190815\", 1782.0, 1788.0, 1761.9375, 1776.125, 3809948],\
+    \        [\"20190816\", 1792.875, 1802.9375, 1784.5625, 1792.5625, 3054240],\
+    \        [\"20190819\", 1818.0625, 1826.0, 1812.625, 1816.125, 2820303],\
+    \        [\"20190820\", 1814.5, 1816.8125, 1799.875, 1801.375, 1932835],\
+    \        [\"20190821\", 1819.375, 1829.5625, 1815.0, 1823.5625, 2039231],\
+    \        [\"20190822\", 1828.0, 1829.4375, 1800.125, 1805.625, 2658388],\
+    \        [\"20190823\", 1793.0, 1804.875, 1745.25, 1749.625, 5277898],\
+    \        [\"20190826\", 1766.9375, 1770.0, 1743.5, 1768.875, 3085320],\
+    \        [\"20190827\", 1775.75, 1779.375, 1746.6875, 1761.8125, 3027245],\
+    \        [\"20190828\", 1755.0, 1767.875, 1744.0625, 1764.25, 2421893],\
+    \        [\"20190829\", 1783.0, 1798.5625, 1777.25, 1786.375, 3018012],\
+    \        [\"20190830\", 1797.5, 1799.75, 1764.5625, 1776.3125, 2983424],\
+    \        [\"20190903\", 1770.0, 1800.8125, 1768.0, 1789.8125, 3546859],\
+    \        [\"20190904\", 1805.0, 1807.625, 1796.25, 1800.625, 2326228],\
+    \        [\"20190905\", 1821.9375, 1842.0, 1815.5625, 1840.75, 3325189],\
+    \        [\"20190906\", 1838.25, 1840.625, 1826.375, 1833.5, 2496933],\
+    \        [\"20190909\", 1841.0, 1850.0, 1824.625, 1831.375, 2999515],\
+    \        [\"20190910\", 1822.75, 1825.8125, 1805.3125, 1820.5625, 2613879],\
+    \        [\"20190911\", 1812.125, 1833.4375, 1809.0625, 1823.0, 2432767],\
+    \        [\"20190912\", 1837.625, 1853.6875, 1834.25, 1843.5625, 2823505],\
+    \        [\"20190913\", 1842.0, 1846.125, 1835.1875, 1839.3125, 1971317],\
+    \        [\"20190916\", 1824.0, 1825.6875, 1800.1875, 1807.8125, 3675473],\
+    \        [\"20190917\", 1807.0625, 1824.0, 1804.125, 1822.5625, 2033058],\
+    \        [\"20190918\", 1817.0625, 1822.0625, 1795.5, 1817.4375, 2536012],\
+    \        [\"20190919\", 1821.0, 1832.5625, 1817.875, 1821.5, 2078335],\
+    \        [\"20190920\", 1821.6875, 1830.625, 1780.9375, 1794.1875, 5555839],\
+    \        [\"20190923\", 1777.0, 1792.6875, 1767.3125, 1785.3125, 3139142],\
+    \        [\"20190924\", 1790.625, 1795.6875, 1735.5625, 1741.625, 4637901],\
+    \        [\"20190925\", 1747.375, 1773.0, 1723.0, 1768.3125, 3531098],\
+    \        [\"20190926\", 1762.8125, 1763.375, 1731.5, 1739.8125, 3571952],\
+    \        [\"20190927\", 1748.0, 1749.125, 1713.8125, 1725.4375, 3948029],\
+    \        [\"20190930\", 1727.0, 1737.4375, 1709.25, 1735.9375, 2760768],\
+    \        [\"20191001\", 1746.0, 1755.625, 1728.4375, 1735.625, 3170460],\
+    \        [\"20191002\", 1727.75, 1728.875, 1705.0, 1713.25, 3338476],\
+    \        [\"20191003\", 1713.0, 1725.0, 1685.0625, 1724.4375, 3624371],\
+    \        [\"20191004\", 1726.0, 1740.5625, 1719.25, 1739.625, 2489277],\
+    \        [\"20191007\", 1731.625, 1747.8125, 1723.6875, 1732.6875, 2187598],\
+    \        [\"20191008\", 1722.5, 1727.0, 1705.0, 1705.5, 2626840],\
+    \        [\"20191009\", 1719.625, 1729.9375, 1714.375, 1722.0, 2089335],\
+    \        [\"20191010\", 1725.25, 1738.3125, 1713.75, 1720.25, 2721531],\
+    \        [\"20191011\", 1742.9375, 1745.4375, 1729.875, 1731.9375, 3279534],\
+    \        [\"20191014\", 1728.9375, 1741.875, 1722.0, 1736.4375, 1928898],\
+    \        [\"20191015\", 1742.125, 1776.4375, 1740.625, 1767.375, 3129244],\
+    \        [\"20191016\", 1773.3125, 1786.25, 1770.5, 1777.4375, 2804068],\
+    \        [\"20191017\", 1796.5, 1798.875, 1782.0, 1787.5, 2713773],\
+    \        [\"20191018\", 1787.8125, 1794.0, 1749.1875, 1757.5, 3366091],\
+    \        [\"20191021\", 1769.6875, 1785.875, 1765.0, 1785.6875, 2224902],\
+    \        [\"20191022\", 1788.125, 1789.75, 1762.0, 1765.75, 2234425],\
+    \        [\"20191023\", 1761.3125, 1770.0625, 1742.0, 1762.1875, 2190380],\
+    \        [\"20191024\", 1771.0625, 1788.3125, 1760.25, 1780.75, 5204350],\
+    \        [\"20191025\", 1697.5625, 1764.1875, 1695.0, 1761.3125, 9626402],\
+    \        [\"20191028\", 1748.0625, 1778.6875, 1742.5, 1777.0625, 3708851],\
+    \        [\"20191029\", 1774.8125, 1777.0, 1755.8125, 1762.6875, 2276855],\
+    \        [\"20191030\", 1760.25, 1782.375, 1759.125, 1780.0, 2449405],\
+    \        [\"20191031\", 1776.0, 1792.0, 1771.5, 1776.6875, 2781185],\
+    \        [\"20191101\", 1788.0, 1797.4375, 1785.1875, 1791.4375, 2790354],\
+    \        [\"20191104\", 1801.0, 1815.0625, 1801.0, 1804.6875, 2771922],\
+    \        [\"20191105\", 1809.1875, 1810.25, 1794.0, 1801.6875, 1885543],\
+    \        [\"20191106\", 1801.0, 1802.5, 1788.5625, 1795.75, 2029783],\
+    \        [\"20191107\", 1803.75, 1805.875, 1783.5, 1788.1875, 2651086],\
+    \        [\"20191108\", 1787.875, 1789.875, 1774.0625, 1785.875, 2126198],\
+    \        [\"20191111\", 1778.0, 1780.0, 1767.125, 1771.625, 1947810],\
+    \        [\"20191112\", 1774.6875, 1786.25, 1771.9375, 1778.0, 2038925],\
+    \        [\"20191113\", 1773.375, 1775.0, 1747.3125, 1753.125, 2926892],\
+    \        [\"20191114\", 1751.4375, 1766.5625, 1749.5625, 1754.625, 2269417],\
+    \        [\"20191115\", 1760.0625, 1761.6875, 1732.875, 1739.5, 3931141],\
+    \        [\"20191118\", 1738.3125, 1753.6875, 1722.6875, 1752.5, 2841907],\
+    \        [\"20191119\", 1757.0, 1760.6875, 1743.0, 1752.8125, 2274535],\
+    \        [\"20191120\", 1749.125, 1762.5, 1734.125, 1745.5, 2793759],\
+    \        [\"20191121\", 1743.0, 1746.875, 1730.375, 1734.6875, 2662938],\
+    \        [\"20191122\", 1739.0, 1746.4375, 1731.0, 1745.75, 2479081],\
+    \        [\"20191125\", 1753.25, 1777.4375, 1753.25, 1773.8125, 3489467],\
+    \        [\"20191126\", 1779.9375, 1797.0, 1778.375, 1796.9375, 3190428],\
+    \        [\"20191127\", 1801.0, 1824.5, 1797.3125, 1818.5, 3035846],\
+    \        [\"20191129\", 1817.75, 1824.6875, 1800.8125, 1800.8125, 1923440],\
+    \        [\"20191202\", 1804.375, 1805.5625, 1762.6875, 1781.625, 3931750],\
+    \        [\"20191203\", 1760.0, 1772.875, 1747.25, 1769.9375, 3529582],\
+    \        [\"20191204\", 1774.0, 1789.0625, 1760.25, 1760.6875, 2680700],\
+    \        [\"20191205\", 1763.5, 1763.5, 1740.0, 1740.5, 2827852],\
+    \        [\"20191206\", 1751.1875, 1754.375, 1740.125, 1751.625, 3119979],\
+    \        [\"20191209\", 1750.6875, 1766.875, 1745.625, 1749.5, 2502489],\
+    \        [\"20191210\", 1747.375, 1750.6875, 1735.0, 1739.1875, 2515644],\
+    \        [\"20191211\", 1741.6875, 1750.0, 1735.6875, 1748.75, 2101318],\
+    \        [\"20191212\", 1750.0, 1764.0, 1745.4375, 1760.3125, 3103949],\
+    \        [\"20191213\", 1765.0, 1769.0, 1755.0, 1760.9375, 2747909],\
+    \        [\"20191216\", 1767.0, 1769.5, 1757.0625, 1769.1875, 3149345],\
+    \        [\"20191217\", 1778.0, 1792.0, 1777.375, 1790.6875, 3646697],\
+    \        [\"20191218\", 1795.0, 1798.1875, 1782.375, 1784.0, 3354137],\
+    \        [\"20191219\", 1780.5, 1793.0, 1774.0625, 1792.25, 2738320],\
+    \        [\"20191220\", 1799.625, 1803.0, 1782.4375, 1786.5, 5152460],\
+    \        [\"20191223\", 1788.25, 1793.0, 1784.5, 1793.0, 2137493],\
+    \        [\"20191224\", 1793.8125, 1795.5625, 1787.5625, 1789.1875, 881337],\
+    \        [\"20191226\", 1801.0, 1870.4375, 1799.5, 1868.75, 6024608],\
+    \        [\"20191227\", 1882.9375, 1901.375, 1866.0, 1869.8125, 6188754],\
+    \        [\"20191230\", 1874.0, 1884.0, 1840.625, 1846.875, 3677306],\
+    \        [\"20191231\", 1842.0, 1853.25, 1832.25, 1847.8125, 2510380],\
+    \        [\"20200102\", 1875.0, 1898.0, 1864.125, 1898.0, 4035910],\
+    \        [\"20200103\", 1864.5, 1886.1875, 1864.5, 1875.0, 3766604],\
+    \        [\"20200106\", 1860.0, 1903.6875, 1860.0, 1902.875, 4065698],\
+    \        [\"20200107\", 1904.5, 1913.875, 1892.0625, 1906.875, 4134010],\
+    \        [\"20200108\", 1898.0625, 1911.0, 1886.4375, 1892.0, 3511966],\
+    \        [\"20200109\", 1909.875, 1917.8125, 1895.8125, 1901.0625, 3174962],\
+    \        [\"20200110\", 1905.375, 1906.9375, 1880.0, 1883.1875, 2856959],\
+    \        [\"20200113\", 1891.3125, 1898.0, 1880.8125, 1891.3125, 2785844],\
+    \        [\"20200114\", 1885.875, 1887.125, 1858.5625, 1869.4375, 3446381],\
+    \        [\"20200115\", 1872.25, 1878.875, 1855.0625, 1862.0, 2896592],\
+    \        [\"20200116\", 1883.0, 1885.5625, 1866.0, 1877.9375, 2659493],\
+    \        [\"20200117\", 1885.875, 1886.625, 1857.25, 1864.75, 3997340],\
+    \        [\"20200121\", 1865.0, 1894.25, 1860.0, 1892.0, 3707785],\
+    \        [\"20200122\", 1896.0625, 1902.5, 1883.3125, 1887.4375, 3216257],\
+    \        [\"20200123\", 1885.125, 1890.0, 1872.75, 1884.5625, 2484613],\
+    \        [\"20200124\", 1891.375, 1895.0, 1847.4375, 1861.625, 3766181],\
+    \        [\"20200127\", 1820.0, 1841.0, 1815.3125, 1828.3125, 3528509],\
+    \        [\"20200128\", 1840.5, 1858.125, 1830.0, 1853.25, 2808040],\
+    \        [\"20200129\", 1864.0, 1874.75, 1855.0, 1858.0, 2101390],\
+    \        [\"20200130\", 1858.0, 1872.875, 1850.625, 1870.6875, 6327438],\
+    \        [\"20200131\", 2051.5, 2055.75, 2002.25, 2008.75, 15567283],\
+    \        [\"20200203\", 2010.625, 2048.5, 2000.25, 2004.1875, 5899094],\
+    \        [\"20200204\", 2029.875, 2059.8125, 2015.375, 2049.6875, 5289338],\
+    \        [\"20200205\", 2071.0, 2071.0, 2032.0, 2039.875, 4376174],\
+    \        [\"20200206\", 2041.0, 2056.3125, 2024.8125, 2050.25, 3182954],\
+    \        [\"20200207\", 2042.0, 2098.5, 2038.125, 2079.25, 5095347],\
+    \        [\"20200210\", 2085.0, 2135.625, 2084.9375, 2133.9375, 5056235],\
+    \        [\"20200211\", 2150.875, 2185.9375, 2136.0, 2150.8125, 5746011],\
+    \        [\"20200212\", 2163.1875, 2180.25, 2155.3125, 2160.0, 3334264],\
+    \        [\"20200213\", 2145.0, 2170.25, 2142.0, 2149.875, 3031791],\
+    \        [\"20200214\", 2155.6875, 2159.0625, 2125.875, 2134.875, 2606169],\
+    \        [\"20200218\", 2125.0, 2166.0625, 2124.125, 2155.6875, 2951070],\
+    \        [\"20200219\", 2167.8125, 2185.125, 2161.125, 2170.25, 2561165],\
+    \        [\"20200220\", 2173.0625, 2176.8125, 2127.4375, 2153.125, 3131342],\
+    \        [\"20200221\", 2142.125, 2144.5625, 2088.0, 2096.0, 4650740],\
+    \        [\"20200224\", 2003.1875, 2039.3125, 1988.0, 2009.3125, 6546997],\
+    \        [\"20200225\", 2026.4375, 2034.625, 1958.4375, 1972.75, 6219094],\
+    \        [\"20200226\", 1970.25, 2014.6875, 1960.4375, 1979.5625, 5240402],\
+    \        [\"20200227\", 1934.375, 1975.0, 1882.75, 1884.3125, 8143993],\
+    \        [\"20200228\", 1814.625, 1889.75, 1811.125, 1883.75, 9493797],\
+    \        [\"20200302\", 1906.5, 1954.5, 1870.0, 1953.9375, 6761651],\
+    \        [\"20200303\", 1975.375, 1996.3125, 1888.0625, 1909.0, 7534491],\
+    \        [\"20200304\", 1946.5625, 1978.0, 1922.0, 1975.8125, 4772919],\
+    \        [\"20200305\", 1933.0, 1960.75, 1910.0, 1924.0, 4748210],\
+    \        [\"20200306\", 1875.0, 1910.875, 1869.5, 1901.0625, 5273580],\
+    \        [\"20200309\", 1773.875, 1862.75, 1761.3125, 1800.625, 7813232],\
+    \        [\"20200310\", 1870.875, 1894.25, 1818.1875, 1891.8125, 7133310],\
+    \        [\"20200311\", 1857.875, 1871.3125, 1801.5, 1820.875, 5646831],\
+    \        [\"20200312\", 1722.0, 1765.0, 1675.0, 1676.625, 11346214],\
+    \        [\"20200313\", 1755.0, 1786.3125, 1680.625, 1785.0, 8809725],\
+    \        [\"20200316\", 1641.5, 1759.4375, 1626.0625, 1689.125, 8917265],\
+    \        [\"20200317\", 1775.5, 1857.75, 1689.25, 1807.8125, 10917129],\
+    \        [\"20200318\", 1750.0, 1841.6875, 1745.0, 1830.0, 9645218],\
+    \        [\"20200319\", 1860.0, 1945.0, 1832.625, 1880.9375, 10399943],\
+    \        [\"20200320\", 1926.3125, 1957.0, 1820.75, 1846.0625, 9817850],\
+    \        [\"20200323\", 1827.75, 1919.375, 1812.0, 1902.8125, 7808489],\
+    \        [\"20200324\", 1951.5, 1955.0, 1900.3125, 1940.125, 7147080],\
+    \        [\"20200325\", 1920.6875, 1950.25, 1885.75, 1885.8125, 6479073],\
+    \        [\"20200326\", 1902.0, 1956.5, 1889.3125, 1955.5, 6235118],\
+    \        [\"20200327\", 1930.875, 1939.8125, 1899.9375, 1900.125, 5387897],\
+    \        [\"20200330\", 1922.8125, 1973.625, 1912.3125, 1963.9375, 6126087],\
+    \        [\"20200331\", 1964.375, 1993.0, 1944.0, 1949.75, 5123626],\
+    \        [\"20200401\", 1933.0, 1944.9375, 1893.0, 1907.6875, 4121875],\
+    \        [\"20200402\", 1901.625, 1927.5, 1890.0, 1918.8125, 4335985],\
+    \        [\"20200403\", 1911.125, 1926.3125, 1889.125, 1906.5625, 3609870],\
+    \        [\"20200406\", 1936.0, 1998.5, 1930.0, 1997.5625, 5773181],\
+    \        [\"20200407\", 2017.125, 2035.75, 1997.625, 2011.625, 5113983],\
+    \        [\"20200408\", 2021.0, 2044.0, 2011.125, 2043.0, 3977313],\
+    \        [\"20200409\", 2044.3125, 2053.0, 2017.6875, 2042.75, 4655617],\
+    \        [\"20200413\", 2040.0, 2180.0, 2038.0, 2168.875, 6716709],\
+    \        [\"20200414\", 2200.5, 2292.0, 2186.1875, 2283.3125, 8087193],\
+    \        [\"20200415\", 2257.6875, 2333.375, 2245.0, 2307.6875, 6866567],\
+    \        [\"20200416\", 2346.0, 2461.0, 2335.0, 2408.1875, 12038201],\
+    \        [\"20200417\", 2372.3125, 2400.0, 2316.0, 2375.0, 7930010],\
+    \        [\"20200420\", 2389.9375, 2445.0, 2386.0625, 2393.625, 5770694],\
+    \        [\"20200421\", 2416.625, 2428.3125, 2279.6875, 2328.125, 7476679],\
+    \        [\"20200422\", 2369.0, 2394.0, 2351.0, 2363.5, 4218295],\
+    \        [\"20200423\", 2400.0, 2424.25, 2382.0625, 2399.4375, 5066552],\
+    \        [\"20200424\", 2417.0, 2420.4375, 2382.0, 2410.25, 3831797],\
+    \        [\"20200427\", 2443.1875, 2444.875, 2363.0, 2376.0, 5645645],\
+    \        [\"20200428\", 2372.125, 2373.5, 2306.0, 2314.0625, 5269446],\
+    \        [\"20200429\", 2330.0, 2391.875, 2310.0, 2372.6875, 4591593],\
+    \        [\"20200430\", 2419.8125, 2475.0, 2396.0, 2474.0, 9534611],\
+    \        [\"20200501\", 2336.8125, 2362.4375, 2258.1875, 2286.0625, 9696163],\
+    \        [\"20200504\", 2256.375, 2327.0, 2256.375, 2316.0, 4865926],\
+    \        [\"20200505\", 2340.0, 2351.0, 2307.125, 2317.8125, 3242496],\
+    \        [\"20200506\", 2329.4375, 2357.4375, 2320.0, 2351.25, 3117814],\
+    \        [\"20200507\", 2374.75, 2376.0, 2343.125, 2367.625, 3396411],\
+    \        [\"20200508\", 2372.125, 2387.25, 2357.0, 2379.625, 3211228],\
+    \        [\"20200511\", 2374.6875, 2419.6875, 2372.125, 2409.0, 3259231],\
+    \        [\"20200512\", 2411.875, 2419.0, 2355.0, 2356.9375, 3074916],\
+    \        [\"20200513\", 2366.8125, 2407.6875, 2337.8125, 2367.9375, 4782919],\
+    \        [\"20200514\", 2361.0, 2391.375, 2353.1875, 2388.875, 3648128],\
+    \        [\"20200515\", 2368.5, 2411.0, 2356.375, 2409.75, 4234951],\
+    \        [\"20200518\", 2404.375, 2433.0, 2384.0, 2426.25, 4366572],\
+    \        [\"20200519\", 2429.8125, 2485.0, 2429.0, 2449.3125, 4320498],\
+    \        [\"20200520\", 2477.875, 2500.0, 2467.25, 2497.9375, 3998143],\
+    \        [\"20200521\", 2500.0, 2525.4375, 2442.5625, 2446.75, 5114403],\
+    \        [\"20200522\", 2455.0, 2469.875, 2430.125, 2436.875, 2867079],\
+    \        [\"20200526\", 2458.0, 2462.0, 2414.0625, 2421.875, 3568200],\
+    \        [\"20200527\", 2405.0, 2413.5625, 2330.0, 2410.375, 5056900],\
+    \        [\"20200528\", 2384.3125, 2437.0, 2378.25, 2401.125, 3190200],\
+    \        [\"20200529\", 2415.9375, 2442.375, 2398.1875, 2442.375, 3529300],\
+    \        [\"20200601\", 2448.0, 2476.9375, 2444.1875, 2471.0625, 2928900],\
+    \        [\"20200602\", 2467.0, 2473.5, 2445.3125, 2472.4375, 2529900],\
+    \        [\"20200603\", 2468.0, 2488.0, 2461.1875, 2478.375, 2671000],\
+    \        [\"20200604\", 2477.4375, 2507.5625, 2450.0, 2460.625, 2948700],\
+    \        [\"20200605\", 2444.5, 2488.625, 2437.125, 2483.0, 3306400],\
+    \        [\"20200608\", 2500.1875, 2530.0, 2487.3125, 2524.0625, 3970700],\
+    \        [\"20200609\", 2529.4375, 2626.4375, 2525.0, 2600.875, 5176000],\
+    \        [\"20200610\", 2645.0, 2722.375, 2626.25, 2647.4375, 4946000],\
+    \        [\"20200611\", 2603.5, 2671.375, 2536.25, 2557.9375, 5800100],\
+    \        [\"20200612\", 2601.1875, 2621.5, 2503.375, 2545.0, 5429600],\
+    \        [\"20200615\", 2526.625, 2584.0, 2508.0, 2572.6875, 3865100],\
+    \        [\"20200616\", 2620.0, 2620.0, 2576.0, 2615.25, 3585600],\
+    \        [\"20200617\", 2647.5, 2655.0, 2631.8125, 2641.0, 2951100],\
+    \        [\"20200618\", 2647.0, 2659.625, 2636.125, 2654.0, 2487800],\
+    \        [\"20200619\", 2678.0625, 2697.4375, 2659.0, 2675.0, 5777000],\
+    \        [\"20200622\", 2684.5, 2715.0, 2669.0, 2713.8125, 3208800],\
+    \        [\"20200623\", 2726.0, 2783.125, 2718.0625, 2764.4375, 4231700],\
+    \        [\"20200624\", 2780.0, 2796.0, 2721.0, 2734.375, 4526600],\
+    \        [\"20200625\", 2739.5625, 2756.25, 2712.125, 2754.5625, 2968700],\
+    \        [\"20200626\", 2775.0625, 2782.5625, 2688.0, 2692.875, 6500800],\
+    \        [\"20200629\", 2690.0, 2696.8125, 2630.0625, 2680.375, 4223400],\
+    \        [\"20200630\", 2685.0625, 2769.625, 2675.0, 2758.8125, 3769700],\
+    \        [\"20200701\", 2758.0, 2895.0, 2754.0, 2878.6875, 6363400],\
+    \        [\"20200702\", 2912.0, 2955.5625, 2871.125, 2890.3125, 6593400],\
+    \        [\"20200706\", 2935.0, 3059.875, 2930.0, 3057.0625, 6880600],\
+    \        [\"20200707\", 3058.5625, 3069.5625, 2990.0, 3000.125, 5257500],\
+    \        [\"20200708\", 3022.625, 3084.0, 3012.4375, 3081.125, 5037600],\
+    \        [\"20200709\", 3116.0, 3193.875, 3074.0, 3182.625, 6388700],\
+    \        [\"20200710\", 3191.75, 3215.0, 3135.6875, 3200.0, 5486000],\
+    \        [\"20200713\", 3251.0625, 3344.3125, 3068.375, 3104.0, 7720400],\
+    \        [\"20200714\", 3089.0, 3127.375, 2950.0, 3084.0, 7231900],\
+    \        [\"20200715\", 3080.25, 3098.375, 2973.1875, 3008.875, 5788900],\
+    \        [\"20200716\", 2971.0625, 3032.0, 2918.25, 2999.875, 6394200],\
+    \        [\"20200717\", 3009.0, 3024.0, 2948.4375, 2962.0, 4761300],\
+    \        [\"20200720\", 3000.1875, 3201.375, 2994.0, 3196.8125, 7598176],\
+    \        [\"20200721\", 3232.5, 3240.5625, 3105.75, 3138.3125, 6134965],\
+    \        [\"20200722\", 3125.0, 3150.0, 3065.25, 3099.9375, 4104225],\
+    \        [\"20200723\", 3098.25, 3098.25, 2970.0, 2986.5625, 5656906],\
+    \        [\"20200724\", 2930.0, 3031.5625, 2888.0, 3008.9375, 5632413],\
+    \        [\"20200727\", 3062.0, 3098.0, 3015.75, 3055.1875, 4074394],\
+    \        [\"20200728\", 3054.25, 3077.0625, 2995.75, 3000.3125, 3126651],\
+    \        [\"20200729\", 3031.0, 3039.1875, 2996.75, 3033.5, 2974060],\
+    \        [\"20200730\", 3014.0, 3092.0, 3005.0, 3051.875, 6128265],\
+    \        [\"20200731\", 3244.0, 3246.8125, 3151.0, 3164.6875, 8085500],\
+    \        [\"20200803\", 3180.5, 3184.0, 3104.0, 3111.875, 5074700],\
+    \        [\"20200804\", 3101.1875, 3167.25, 3101.1875, 3138.8125, 4694300],\
+    \        [\"20200805\", 3143.75, 3213.5625, 3127.3125, 3205.0, 3930000],\
+    \        [\"20200806\", 3194.375, 3247.5, 3165.4375, 3225.0, 3940600],\
+    \        [\"20200807\", 3224.0, 3240.8125, 3140.6875, 3167.4375, 3929600],\
+    \        [\"20200810\", 3170.3125, 3172.5, 3101.5, 3148.1875, 3167300],\
+    \        [\"20200811\", 3113.1875, 3159.25, 3073.0, 3080.6875, 3718100],\
+    \        [\"20200812\", 3108.0, 3174.375, 3101.4375, 3162.25, 3527200],\
+    \        [\"20200813\", 3183.0, 3217.5, 3155.0, 3161.0, 3149000],\
+    \        [\"20200814\", 3178.1875, 3178.25, 3120.0, 3148.0, 2751700],\
+    \        [\"20200817\", 3173.125, 3195.0, 3154.1875, 3182.4375, 2691200],\
+    \        [\"20200818\", 3212.0, 3320.0, 3205.8125, 3312.5, 5346000],\
+    \        [\"20200819\", 3303.0, 3315.875, 3256.0, 3260.5, 4185100],\
+    \        [\"20200820\", 3252.0, 3312.625, 3238.0, 3297.375, 3332500],\
+    \        [\"20200821\", 3295.0, 3314.375, 3275.375, 3284.75, 3575900],\
+    \        [\"20200824\", 3310.125, 3380.3125, 3257.5625, 3307.4375, 4666300],\
+    \        [\"20200825\", 3295.0, 3357.375, 3267.0, 3346.5, 3992800],\
+    \        [\"20200826\", 3351.125, 3451.75, 3344.5625, 3441.875, 6508700],\
+    \        [\"20200827\", 3450.0625, 3453.0, 3378.0, 3400.0, 4264800],\
+    \        [\"20200828\", 3423.0, 3433.375, 3386.5, 3401.8125, 2894100],\
+    \        [\"20200831\", 3409.0, 3495.0, 3405.0, 3450.9375, 4185900],\
+    \        [\"20200901\", 3489.5625, 3513.875, 3467.0, 3499.125, 3476400],\
+    \        [\"20200902\", 3547.0, 3552.25, 3486.6875, 3531.4375, 3931500],\
+    \        [\"20200903\", 3485.0, 3488.4375, 3303.0, 3368.0, 8161100],\
+    \        [\"20200904\", 3318.0, 3381.5, 3111.125, 3294.625, 8781800],\
+    \        [\"20200908\", 3144.0, 3250.875, 3130.0, 3149.8125, 6094200],\
+    \        [\"20200909\", 3203.0, 3303.1875, 3185.0, 3268.625, 5188700],\
+    \        [\"20200910\", 3307.25, 3349.875, 3170.5625, 3175.125, 5330700],\
+    \        [\"20200911\", 3208.6875, 3217.3125, 3084.0, 3116.25, 5094000],\
+    \        [\"20200914\", 3172.9375, 3187.375, 3096.0, 3103.0, 4529600],\
+    \        [\"20200915\", 3136.1875, 3175.0, 3108.9375, 3156.125, 4021500],\
+    \        [\"20200916\", 3180.0, 3187.25, 3074.125, 3078.125, 4512200],\
+    \        [\"20200917\", 3009.25, 3029.4375, 2972.5625, 3008.75, 6449100],\
+    \        [\"20200918\", 3031.75, 3037.8125, 2905.5625, 2954.9375, 8892600],\
+    \        [\"20200921\", 2906.5, 2962.0, 2871.0, 2960.5, 6117900],\
+    \        [\"20200922\", 3033.8125, 3134.0, 3000.1875, 3129.0, 6948800],\
+    \        [\"20200923\", 3120.4375, 3127.0, 2992.375, 2999.875, 5652700],\
+    \        [\"20200924\", 2977.8125, 3069.3125, 2965.0, 3019.8125, 5529400],\
+    \        [\"20200925\", 3054.875, 3101.5625, 2999.0, 3095.125, 4615200],\
+    \        [\"20200928\", 3148.875, 3175.0625, 3117.1875, 3174.0625, 4224200],\
+    \        [\"20200929\", 3175.375, 3188.25, 3132.5625, 3144.875, 3495800],\
+    \        [\"20200930\", 3141.125, 3212.875, 3134.0, 3148.75, 4883400],\
+    \        [\"20201001\", 3208.0, 3224.0, 3172.0, 3221.25, 4971900]\
+    \    ]],\
+    \    [\"F\", [\
+    \        [\"20190102\", 7.5, 8.0, 7.5, 7.875, 47494361],\
+    \        [\"20190103\", 8.0, 8.0, 7.75, 7.75, 39172395],\
+    \        [\"20190104\", 7.9375, 8.125, 7.875, 8.0625, 43039807],\
+    \        [\"20190107\", 8.125, 8.375, 8.0, 8.3125, 40729353],\
+    \        [\"20190108\", 8.4375, 8.5625, 8.375, 8.375, 45643969],\
+    \        [\"20190109\", 8.4375, 8.75, 8.375, 8.75, 48404884],\
+    \        [\"20190110\", 8.6875, 8.75, 8.4375, 8.6875, 39490422],\
+    \        [\"20190111\", 8.75, 8.9375, 8.6875, 8.8125, 41559875],\
+    \        [\"20190114\", 8.8125, 9.0625, 8.75, 9.0, 44833842],\
+    \        [\"20190115\", 9.0, 9.0, 8.75, 8.8125, 65311702],\
+    \        [\"20190116\", 8.6875, 8.75, 8.25, 8.3125, 73869859],\
+    \        [\"20190117\", 8.25, 8.4375, 8.1875, 8.375, 56722604],\
+    \        [\"20190118\", 8.375, 8.625, 8.3125, 8.5625, 51127860],\
+    \        [\"20190122\", 8.5625, 8.625, 8.4375, 8.5, 47182620],\
+    \        [\"20190123\", 8.5625, 8.5625, 8.25, 8.3125, 45196860],\
+    \        [\"20190124\", 8.3125, 8.6875, 8.25, 8.625, 79516367],\
+    \        [\"20190125\", 8.75, 8.9375, 8.75, 8.875, 53130148],\
+    \        [\"20190128\", 8.8125, 8.8125, 8.5625, 8.6875, 42116304],\
+    \        [\"20190129\", 8.6875, 8.8125, 8.625, 8.75, 30485016],\
+    \        [\"20190130\", 8.6875, 8.75, 8.5, 8.6875, 29906134],\
+    \        [\"20190131\", 8.625, 8.8125, 8.625, 8.8125, 39389094],\
+    \        [\"20190201\", 8.75, 8.8125, 8.625, 8.75, 34124005],\
+    \        [\"20190204\", 8.6875, 8.6875, 8.5625, 8.6875, 28855569],\
+    \        [\"20190205\", 8.6875, 8.75, 8.625, 8.75, 26166848],\
+    \        [\"20190206\", 8.8125, 8.875, 8.6875, 8.75, 32644299],\
+    \        [\"20190207\", 8.625, 8.625, 8.3125, 8.3125, 55161837],\
+    \        [\"20190208\", 8.3125, 8.4375, 8.1875, 8.375, 38650090],\
+    \        [\"20190211\", 8.4375, 8.4375, 8.3125, 8.3125, 27403546],\
+    \        [\"20190212\", 8.375, 8.5, 8.375, 8.4375, 26235089],\
+    \        [\"20190213\", 8.4375, 8.6875, 8.375, 8.4375, 27182886],\
+    \        [\"20190214\", 8.375, 8.5, 8.3125, 8.4375, 23569872],\
+    \        [\"20190215\", 8.5, 8.5625, 8.4375, 8.5625, 58080330],\
+    \        [\"20190219\", 8.5, 8.875, 8.5, 8.8125, 37929175],\
+    \        [\"20190220\", 8.8125, 9.0, 8.8125, 8.9375, 55316868],\
+    \        [\"20190221\", 8.9375, 8.9375, 8.6875, 8.6875, 44730351],\
+    \        [\"20190222\", 8.75, 8.75, 8.5625, 8.6875, 40947503],\
+    \        [\"20190225\", 8.75, 8.875, 8.75, 8.75, 56615428],\
+    \        [\"20190226\", 8.75, 8.9375, 8.75, 8.875, 38348838],\
+    \        [\"20190227\", 8.8125, 8.9375, 8.75, 8.75, 34093320],\
+    \        [\"20190228\", 8.75, 8.8125, 8.625, 8.75, 43960541],\
+    \        [\"20190301\", 8.875, 8.875, 8.6875, 8.8125, 37699506],\
+    \        [\"20190304\", 8.8125, 9.0, 8.75, 8.8125, 46196859],\
+    \        [\"20190305\", 8.8125, 8.8125, 8.6875, 8.75, 40852648],\
+    \        [\"20190306\", 8.75, 8.75, 8.5625, 8.5625, 50378587],\
+    \        [\"20190307\", 8.5625, 8.5625, 8.375, 8.5, 54285995],\
+    \        [\"20190308\", 8.375, 8.5, 8.3125, 8.4375, 43766799],\
+    \        [\"20190311\", 8.4375, 8.625, 8.4375, 8.625, 36875290],\
+    \        [\"20190312\", 8.625, 8.6875, 8.5625, 8.5625, 37805025],\
+    \        [\"20190313\", 8.5625, 8.625, 8.5, 8.5, 49018694],\
+    \        [\"20190314\", 8.5, 8.5625, 8.375, 8.4375, 36307868],\
+    \        [\"20190315\", 8.4375, 8.5, 8.375, 8.4375, 66555519],\
+    \        [\"20190318\", 8.4375, 8.5625, 8.4375, 8.5625, 37198328],\
+    \        [\"20190319\", 8.625, 8.875, 8.625, 8.6875, 57293608],\
+    \        [\"20190320\", 8.6875, 8.6875, 8.5, 8.5, 54539726],\
+    \        [\"20190321\", 8.5, 8.6875, 8.5, 8.6875, 46843085],\
+    \        [\"20190322\", 8.625, 8.6875, 8.5, 8.5625, 41963991],\
+    \        [\"20190325\", 8.5625, 8.625, 8.5, 8.5, 45849484],\
+    \        [\"20190326\", 8.5625, 8.75, 8.5625, 8.75, 47852114],\
+    \        [\"20190327\", 8.75, 8.875, 8.625, 8.625, 39895763],\
+    \        [\"20190328\", 8.625, 8.8125, 8.625, 8.75, 38914696],\
+    \        [\"20190329\", 8.8125, 8.875, 8.6875, 8.75, 33962755],\
+    \        [\"20190401\", 8.875, 9.0, 8.875, 9.0, 45653096],\
+    \        [\"20190402\", 8.9375, 9.0, 8.9375, 9.0, 30699413],\
+    \        [\"20190403\", 9.0625, 9.25, 9.0625, 9.125, 56663558],\
+    \        [\"20190404\", 9.1875, 9.3125, 9.1875, 9.25, 39483120],\
+    \        [\"20190405\", 9.1875, 9.25, 9.0625, 9.25, 37854698],\
+    \        [\"20190408\", 9.1875, 9.3125, 9.1875, 9.3125, 26221135],\
+    \        [\"20190409\", 9.25, 9.375, 9.1875, 9.1875, 29879089],\
+    \        [\"20190410\", 9.25, 9.375, 9.1875, 9.3125, 28469482],\
+    \        [\"20190411\", 9.375, 9.4375, 9.3125, 9.375, 26488106],\
+    \        [\"20190412\", 9.5, 9.625, 9.4375, 9.4375, 38646020],\
+    \        [\"20190415\", 9.5, 9.5, 9.25, 9.3125, 41206747],\
+    \        [\"20190416\", 9.3125, 9.375, 9.25, 9.375, 40949992],\
+    \        [\"20190417\", 9.375, 9.5625, 9.375, 9.5, 30688316],\
+    \        [\"20190418\", 9.5, 9.625, 9.5, 9.5625, 29843042],\
+    \        [\"20190422\", 9.5625, 9.5625, 9.4375, 9.5, 38718506],\
+    \        [\"20190423\", 9.375, 9.5, 9.3125, 9.5, 39493689],\
+    \        [\"20190424\", 9.4375, 9.625, 9.375, 9.5625, 39796303],\
+    \        [\"20190425\", 9.5, 9.5, 9.3125, 9.375, 52596747],\
+    \        [\"20190426\", 10.0, 10.4375, 9.9375, 10.4375, 156136698],\
+    \        [\"20190429\", 10.375, 10.375, 10.0625, 10.3125, 62500522],\
+    \        [\"20190430\", 10.3125, 10.5, 10.25, 10.4375, 46079308],\
+    \        [\"20190501\", 10.5, 10.5, 10.3125, 10.3125, 41805504],\
+    \        [\"20190502\", 10.3125, 10.375, 10.1875, 10.3125, 34508446],\
+    \        [\"20190503\", 10.375, 10.4375, 10.3125, 10.4375, 36291243],\
+    \        [\"20190506\", 10.125, 10.4375, 10.125, 10.375, 28640578],\
+    \        [\"20190507\", 10.3125, 10.4375, 10.3125, 10.375, 41154485],\
+    \        [\"20190508\", 10.375, 10.4375, 10.3125, 10.3125, 33472200],\
+    \        [\"20190509\", 10.25, 10.3125, 10.0625, 10.1875, 43621299],\
+    \        [\"20190510\", 10.3125, 10.4375, 10.1875, 10.375, 37629526],\
+    \        [\"20190513\", 10.1875, 10.25, 10.0625, 10.0625, 51102054],\
+    \        [\"20190514\", 10.125, 10.3125, 10.125, 10.25, 31297221],\
+    \        [\"20190515\", 10.1875, 10.375, 10.0625, 10.375, 44050200],\
+    \        [\"20190516\", 10.3125, 10.4375, 10.3125, 10.375, 32696980],\
+    \        [\"20190517\", 10.3125, 10.4375, 10.25, 10.3125, 34565393],\
+    \        [\"20190520\", 10.3125, 10.3125, 10.1875, 10.25, 29535935],\
+    \        [\"20190521\", 10.3125, 10.3125, 10.125, 10.25, 30099324],\
+    \        [\"20190522\", 10.1875, 10.1875, 9.9375, 10.0, 51407182],\
+    \        [\"20190523\", 9.875, 9.875, 9.6875, 9.875, 43153773],\
+    \        [\"20190524\", 9.9375, 9.9375, 9.8125, 9.8125, 22131457],\
+    \        [\"20190528\", 9.875, 9.875, 9.75, 9.75, 27656181],\
+    \        [\"20190529\", 9.6875, 9.75, 9.5625, 9.6875, 32262552],\
+    \        [\"20190530\", 9.75, 9.8125, 9.6875, 9.75, 24759571],\
+    \        [\"20190531\", 9.5, 9.5625, 9.3125, 9.5, 48250384],\
+    \        [\"20190603\", 9.625, 9.625, 9.4375, 9.625, 39446800],\
+    \        [\"20190604\", 9.75, 9.9375, 9.75, 9.9375, 37324130],\
+    \        [\"20190605\", 9.875, 9.9375, 9.625, 9.75, 42464814],\
+    \        [\"20190606\", 9.75, 9.8125, 9.6875, 9.75, 28291063],\
+    \        [\"20190607\", 9.75, 9.8125, 9.6875, 9.75, 18848704],\
+    \        [\"20190610\", 9.875, 10.0, 9.75, 9.8125, 33883401],\
+    \        [\"20190611\", 9.875, 10.0, 9.8125, 9.9375, 26434185],\
+    \        [\"20190612\", 9.875, 9.9375, 9.8125, 9.875, 21746723],\
+    \        [\"20190613\", 9.875, 10.0625, 9.8125, 10.0625, 25555852],\
+    \        [\"20190614\", 10.0, 10.0625, 9.9375, 10.0, 21553248],\
+    \        [\"20190617\", 10.0, 10.0625, 9.9375, 10.0625, 19383830],\
+    \        [\"20190618\", 10.0625, 10.1875, 10.0625, 10.125, 32591675],\
+    \        [\"20190619\", 10.125, 10.1875, 10.0, 10.0625, 29051257],\
+    \        [\"20190620\", 10.125, 10.125, 9.9375, 10.0625, 32086473],\
+    \        [\"20190621\", 10.0, 10.0625, 9.9375, 10.0, 47904041],\
+    \        [\"20190624\", 9.9375, 10.0, 9.9375, 9.9375, 28091230],\
+    \        [\"20190625\", 10.0, 10.0, 9.8125, 9.8125, 28682019],\
+    \        [\"20190626\", 9.875, 9.9375, 9.8125, 9.9375, 33739050],\
+    \        [\"20190627\", 10.0625, 10.25, 10.0, 10.1875, 42954594],\
+    \        [\"20190628\", 10.1875, 10.3125, 10.1875, 10.25, 37555290],\
+    \        [\"20190701\", 10.3125, 10.4375, 10.0625, 10.125, 38537013],\
+    \        [\"20190702\", 10.125, 10.1875, 10.0625, 10.125, 29715482],\
+    \        [\"20190703\", 10.1875, 10.3125, 10.125, 10.1875, 19326620],\
+    \        [\"20190705\", 10.1875, 10.25, 10.0625, 10.1875, 21397917],\
+    \        [\"20190708\", 10.1875, 10.25, 10.1875, 10.1875, 23244145],\
+    \        [\"20190709\", 10.1875, 10.1875, 10.125, 10.125, 25140615],\
+    \        [\"20190710\", 10.1875, 10.25, 10.125, 10.125, 29082154],\
+    \        [\"20190711\", 10.125, 10.1875, 10.125, 10.1875, 27667547],\
+    \        [\"20190712\", 10.25, 10.5, 10.25, 10.5, 40761563],\
+    \        [\"20190715\", 10.5, 10.5625, 10.3125, 10.4375, 33753508],\
+    \        [\"20190716\", 10.375, 10.5, 10.3125, 10.5, 29530493],\
+    \        [\"20190717\", 10.5, 10.5, 10.3125, 10.3125, 25204389],\
+    \        [\"20190718\", 10.3125, 10.3125, 10.1875, 10.25, 25828860],\
+    \        [\"20190719\", 10.3125, 10.3125, 10.1875, 10.1875, 38505641],\
+    \        [\"20190722\", 10.125, 10.1875, 10.0, 10.0, 36238647],\
+    \        [\"20190723\", 10.125, 10.25, 10.0625, 10.1875, 74624841],\
+    \        [\"20190724\", 10.1875, 10.375, 10.125, 10.3125, 61107450],\
+    \        [\"20190725\", 9.75, 9.75, 9.375, 9.5625, 133898570],\
+    \        [\"20190726\", 9.5625, 9.625, 9.5, 9.5625, 47710167],\
+    \        [\"20190729\", 9.625, 9.6875, 9.5, 9.625, 36487758],\
+    \        [\"20190730\", 9.5625, 9.5625, 9.5, 9.5625, 36944663],\
+    \        [\"20190731\", 9.5625, 9.5625, 9.375, 9.5, 56715513],\
+    \        [\"20190801\", 9.5, 9.5625, 9.25, 9.3125, 58060754],\
+    \        [\"20190802\", 9.25, 9.3125, 9.1875, 9.25, 41495163],\
+    \        [\"20190805\", 9.1875, 9.25, 9.0625, 9.25, 47963445],\
+    \        [\"20190806\", 9.4375, 9.5, 9.375, 9.5, 51856101],\
+    \        [\"20190807\", 9.4375, 9.5625, 9.3125, 9.5, 43042366],\
+    \        [\"20190808\", 9.5625, 9.625, 9.5, 9.5625, 25468954],\
+    \        [\"20190809\", 9.5625, 9.5625, 9.375, 9.4375, 38739667],\
+    \        [\"20190812\", 9.375, 9.4375, 9.25, 9.3125, 23050381],\
+    \        [\"20190813\", 9.3125, 9.4375, 9.1875, 9.25, 28314963],\
+    \        [\"20190814\", 9.125, 9.125, 8.9375, 9.0, 45967364],\
+    \        [\"20190815\", 9.0625, 9.0625, 8.75, 8.875, 40682769],\
+    \        [\"20190816\", 8.9375, 9.0, 8.8125, 8.9375, 27369852],\
+    \        [\"20190819\", 9.0625, 9.125, 9.0, 9.0, 21844004],\
+    \        [\"20190820\", 9.0, 9.0625, 8.9375, 8.9375, 25119456],\
+    \        [\"20190821\", 9.0, 9.0625, 9.0, 9.0625, 20443922],\
+    \        [\"20190822\", 9.0625, 9.125, 9.0, 9.0625, 20977683],\
+    \        [\"20190823\", 8.875, 9.0, 8.75, 8.75, 44987686],\
+    \        [\"20190826\", 8.875, 8.9375, 8.8125, 8.8125, 31890304],\
+    \        [\"20190827\", 8.875, 8.9375, 8.75, 8.75, 23032302],\
+    \        [\"20190828\", 8.75, 9.0625, 8.6875, 9.0, 35147625],\
+    \        [\"20190829\", 9.125, 9.125, 9.0, 9.125, 22016749],\
+    \        [\"20190830\", 9.1875, 9.25, 9.125, 9.1875, 32060743],\
+    \        [\"20190903\", 9.1875, 9.1875, 9.0625, 9.125, 26331720],\
+    \        [\"20190904\", 9.1875, 9.25, 9.0625, 9.1875, 27410227],\
+    \        [\"20190905\", 9.25, 9.375, 9.25, 9.3125, 36640467],\
+    \        [\"20190906\", 9.375, 9.4375, 9.1875, 9.3125, 29210272],\
+    \        [\"20190909\", 9.375, 9.625, 9.375, 9.5625, 48059365],\
+    \        [\"20190910\", 9.0625, 9.4375, 9.0625, 9.4375, 70567287],\
+    \        [\"20190911\", 9.3125, 9.4375, 9.3125, 9.4375, 34190270],\
+    \        [\"20190912\", 9.375, 9.5, 9.3125, 9.4375, 35687710],\
+    \        [\"20190913\", 9.5, 9.5625, 9.4375, 9.4375, 27161260],\
+    \        [\"20190916\", 9.375, 9.4375, 9.25, 9.3125, 50052608],\
+    \        [\"20190917\", 9.25, 9.3125, 9.1875, 9.25, 27510984],\
+    \        [\"20190918\", 9.25, 9.375, 9.25, 9.25, 24473869],\
+    \        [\"20190919\", 9.3125, 9.3125, 9.125, 9.125, 29133987],\
+    \        [\"20190920\", 9.125, 9.3125, 9.125, 9.1875, 38117099],\
+    \        [\"20190923\", 9.125, 9.25, 9.0625, 9.1875, 23591820],\
+    \        [\"20190924\", 9.1875, 9.25, 9.0625, 9.125, 33167702],\
+    \        [\"20190925\", 9.125, 9.25, 9.0625, 9.1875, 20555603],\
+    \        [\"20190926\", 9.25, 9.25, 9.0625, 9.125, 26593308],\
+    \        [\"20190927\", 9.125, 9.625, 9.0625, 9.0625, 32462237],\
+    \        [\"20190930\", 9.125, 9.1875, 9.125, 9.1875, 22493308],\
+    \        [\"20191001\", 9.1875, 9.25, 8.875, 8.875, 39690749],\
+    \        [\"20191002\", 8.875, 8.875, 8.4375, 8.625, 68290414],\
+    \        [\"20191003\", 8.5625, 8.6875, 8.4375, 8.6875, 41250596],\
+    \        [\"20191004\", 8.75, 8.75, 8.6875, 8.75, 28096692],\
+    \        [\"20191007\", 8.6875, 8.8125, 8.625, 8.6875, 29494228],\
+    \        [\"20191008\", 8.625, 8.6875, 8.5, 8.5625, 31598385],\
+    \        [\"20191009\", 8.625, 8.625, 8.5625, 8.5625, 16979210],\
+    \        [\"20191010\", 8.5625, 8.625, 8.5, 8.625, 28223352],\
+    \        [\"20191011\", 8.75, 8.875, 8.75, 8.75, 34210303],\
+    \        [\"20191014\", 8.8125, 8.8125, 8.75, 8.8125, 25444792],\
+    \        [\"20191015\", 8.8125, 9.125, 8.75, 9.0625, 31040706],\
+    \        [\"20191016\", 9.125, 9.1875, 9.0625, 9.0625, 27386353],\
+    \        [\"20191017\", 9.125, 9.125, 9.0, 9.125, 28652392],\
+    \        [\"20191018\", 9.0625, 9.3125, 9.0625, 9.3125, 42432622],\
+    \        [\"20191021\", 9.1875, 9.25, 9.0, 9.0, 33812870],\
+    \        [\"20191022\", 9.0, 9.125, 8.9375, 9.0625, 35997409],\
+    \        [\"20191023\", 9.0, 9.1875, 9.0, 9.1875, 46677592],\
+    \        [\"20191024\", 8.875, 8.875, 8.5625, 8.625, 121123977],\
+    \        [\"20191025\", 8.6875, 8.75, 8.625, 8.75, 51373623],\
+    \        [\"20191028\", 8.75, 8.75, 8.5625, 8.625, 39635287],\
+    \        [\"20191029\", 8.5625, 8.6875, 8.5625, 8.625, 36771757],\
+    \        [\"20191030\", 8.625, 8.625, 8.5, 8.5625, 28685314],\
+    \        [\"20191031\", 8.5625, 8.625, 8.5, 8.5625, 29124080],\
+    \        [\"20191101\", 8.625, 8.9375, 8.625, 8.875, 55354930],\
+    \        [\"20191104\", 8.9375, 9.0625, 8.9375, 9.0, 46716530],\
+    \        [\"20191105\", 9.0, 9.125, 9.0, 9.0, 37569674],\
+    \        [\"20191106\", 9.0625, 9.0625, 8.875, 8.9375, 39497700],\
+    \        [\"20191107\", 8.9375, 9.0, 8.875, 8.875, 32640397],\
+    \        [\"20191108\", 8.875, 9.0625, 8.8125, 9.0625, 29489854],\
+    \        [\"20191111\", 8.9375, 9.125, 8.9375, 9.0625, 24852635],\
+    \        [\"20191112\", 9.0625, 9.125, 9.0625, 9.0625, 28710942],\
+    \        [\"20191113\", 9.0, 9.0, 8.8125, 8.8125, 34820794],\
+    \        [\"20191114\", 8.875, 8.875, 8.75, 8.8125, 26542134],\
+    \        [\"20191115\", 8.875, 8.9375, 8.875, 8.9375, 26430897],\
+    \        [\"20191118\", 9.0625, 9.0625, 8.875, 8.9375, 38296388],\
+    \        [\"20191119\", 9.0, 9.0, 8.875, 8.875, 31192765],\
+    \        [\"20191120\", 8.875, 8.875, 8.6875, 8.75, 38291750],\
+    \        [\"20191121\", 8.75, 8.8125, 8.6875, 8.6875, 33161371],\
+    \        [\"20191122\", 8.8125, 8.875, 8.75, 8.875, 34966746],\
+    \        [\"20191125\", 8.875, 9.0, 8.875, 9.0, 30617388],\
+    \        [\"20191126\", 9.0, 9.0, 8.9375, 9.0, 30106841],\
+    \        [\"20191127\", 9.0, 9.125, 9.0, 9.125, 37424079],\
+    \        [\"20191129\", 9.0625, 9.125, 9.0, 9.0625, 13096150],\
+    \        [\"20191202\", 9.0625, 9.125, 9.0, 9.0, 37270512],\
+    \        [\"20191203\", 8.9375, 8.9375, 8.8125, 8.875, 41121654],\
+    \        [\"20191204\", 8.9375, 9.0, 8.9375, 8.9375, 29994673],\
+    \        [\"20191205\", 9.0, 9.0, 8.875, 8.9375, 25770717],\
+    \        [\"20191206\", 8.9375, 9.0625, 8.9375, 9.0, 31111724],\
+    \        [\"20191209\", 9.0, 9.0625, 8.9375, 9.0, 21898172],\
+    \        [\"20191210\", 9.0, 9.125, 8.9375, 9.0625, 34233141],\
+    \        [\"20191211\", 9.0625, 9.125, 9.0625, 9.125, 33205336],\
+    \        [\"20191212\", 9.125, 9.375, 9.125, 9.3125, 48398724],\
+    \        [\"20191213\", 9.3125, 9.375, 9.1875, 9.25, 35334491],\
+    \        [\"20191216\", 9.25, 9.375, 9.25, 9.375, 42339949],\
+    \        [\"20191217\", 9.375, 9.4375, 9.3125, 9.375, 35516663],\
+    \        [\"20191218\", 9.375, 9.5625, 9.375, 9.5625, 45929401],\
+    \        [\"20191219\", 9.5625, 9.5625, 9.375, 9.4375, 42237371],\
+    \        [\"20191220\", 9.5, 9.5625, 9.4375, 9.5, 50199268],\
+    \        [\"20191223\", 9.5, 9.5625, 9.375, 9.4375, 54795992],\
+    \        [\"20191224\", 9.4375, 9.5, 9.4375, 9.5, 11881604],\
+    \        [\"20191226\", 9.5, 9.5, 9.4375, 9.4375, 28982311],\
+    \        [\"20191227\", 9.4375, 9.4375, 9.375, 9.375, 28273603],\
+    \        [\"20191230\", 9.3125, 9.375, 9.25, 9.25, 36085418],\
+    \        [\"20191231\", 9.25, 9.3125, 9.25, 9.3125, 32345377]\
+    \    ]]\
+    \]\
+    \"

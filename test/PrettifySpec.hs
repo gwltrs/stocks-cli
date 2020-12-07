@@ -1,10 +1,11 @@
 module PrettifySpec where
 
 import Test.Hspec
+import Data.Function ((&))
 
 import Types (CLICommand(..), Stock(..))
 import Prettify (prettifyCmd, prettifyStocks, prettifyDate)
-import TestStocks (testStocks)
+import ValidatedLiterals (ValidatedLiterals(..), validatedLiterals)
 
 prettifyTests :: SpecWith ()
 prettifyTests = do
@@ -17,7 +18,7 @@ prettifyTests = do
             prettifyStocks [] `shouldBe` "0 stocks"
             prettifyStocks stocksWithoutDays `shouldBe` "0 stocks"
         it "shows 2 stocks" $ do
-            prettifyStocks testStocks `shouldBe` "2 stocks from 1/2/2019 to 10/1/2020"
+            prettifyStocks (validatedLiterals & testStocks) `shouldBe` "2 stocks from 1/2/2019 to 10/1/2020"
     describe "Prettify.prettifyDate" $ do
         it "looks pretty" $ do
             prettifyDate "00010203" `shouldBe` "2/3/1"

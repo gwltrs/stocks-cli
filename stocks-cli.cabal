@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 67d0a926a786f5b4f1b2bd76bdbc91f63be1154be06de9e391b3b275700e5c6c
+-- hash: 00dfad33c8f9edfb713d60a75474ff3cc2c69709bdbf875e75199338f274d107
 
 name:           stocks-cli
 version:        0.1.0.0
@@ -35,6 +35,7 @@ library
       StocksCompactJSON
       TestStocks
       Types
+      ValidatedLiterals
   other-modules:
       Paths_stocks_cli
   hs-source-dirs:
@@ -86,6 +87,7 @@ test-suite stocks-cli-test
       PrettifySpec
       StocksCompactJSONSpec
       TypesSpec
+      ValidatedLiteralsSpec
       Paths_stocks_cli
   hs-source-dirs:
       test

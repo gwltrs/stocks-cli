@@ -15,10 +15,10 @@ import System.Environment (lookupEnv)
 
 import Types (CLICommand(..), CLIState(stocks))
 import Prettify (prettifyCmd, prettifyStocks)
-import TestStocks (testStocks)
 import StocksCompactJSON (toStocksCompactJSON, parseStocksCompactJSON)
 import SafeIO (writeFileSafely, readFileSafely, prompt)
 import Constants (eodhdAPIKeyEnvVar)
+import ValidatedLiterals (ValidatedLiterals(..), validatedLiterals)
 
 helpName :: [String]
 helpName = ["help"]
@@ -40,7 +40,7 @@ cliCommands = [
     CLICommand { 
         name = ["data", "fetch", "sample"],
         description = "Fetches the small, built-in stocks data set",
-        effect = (\s -> putStrLn "Done" >> pure s { stocks = testStocks }) },
+        effect = (\s -> putStrLn "Done" >> pure s { stocks = validatedLiterals & testStocks }) },
     CLICommand { 
         name = ["data", "fetch", "eodhd"],
         description = "Fetches a stocks data set from",

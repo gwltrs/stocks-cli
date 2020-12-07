@@ -5,6 +5,7 @@ import CLISpec (cliTests)
 import PrettifySpec (prettifyTests)
 import StocksCompactJSONSpec (stocksCompactJSONTests)
 import TypesSpec (typesTests)
+import ValidatedLiteralsSpec (validatedLiteralsTests)
 
 main :: IO ()
 main = hspec $ do
@@ -12,3 +13,4 @@ main = hspec $ do
     prettifyTests
     stocksCompactJSONTests
     typesTests
+    validatedLiteralsTests
