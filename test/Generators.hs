@@ -50,6 +50,15 @@ badYYYYMMDDStr =
             suchThat ((arbitrary :: Gen Char) & vectorOf 8) notInt
             ]
         
+-- Generates Float values that aren't real including NaN and +/- Infinity
+nonRealFloat :: Gen Float
+nonRealFloat =
+    oneof [
+        pure $ read "Infinity",
+        pure $ read "-Infinity",
+        pure $ read "NaN"
+    ]
+
 -- Adds up to leadings zeros to the string 
 leadZeros :: Int -> String -> String
 leadZeros n str = 

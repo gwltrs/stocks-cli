@@ -5,12 +5,9 @@ module Types (
     CLIState(..), 
     Stock(..),
     Day(..),
-    YYYYMMDD,
-    ymd,
-    ymdStr,
-    NonNegativeInt, 
-    nonNegativeInt, 
-    int
+    YYYYMMDD, ymd, ymdStr,
+    NonNegativeInt, nonNegativeInt, int,
+    NonNegativeRealFloat, nonNegativeRealFloat, flt
 ) where
 
 import Test.QuickCheck
@@ -91,11 +88,24 @@ newtype NonNegativeInt = NonNegativeInt Int
 nonNegativeInt :: Int -> Maybe NonNegativeInt
 nonNegativeInt i = 
     if i >= 0 
-    then i & NonNegativeInt & Just 
+    then Just $ NonNegativeInt $ i  
     else Nothing 
 
 int :: NonNegativeInt -> Int
 int (NonNegativeInt i) = i
+
+newtype NonNegativeRealFloat = NonNegativeRealFloat Float
+
+-- Smart constructor for NonNegativeRealFloat
+nonNegativeRealFloat :: Float -> Maybe NonNegativeRealFloat
+nonNegativeRealFloat f =
+    if isNaN f || isInfinite f || f < 0 then
+        Nothing
+    else 
+        Just $ NonNegativeRealFloat $ f
+
+flt :: NonNegativeRealFloat -> Float
+flt (NonNegativeRealFloat f) = f
 
 instance Arbitrary Day where
     arbitrary = 
