@@ -7,7 +7,10 @@ module Types (
     Day(..),
     YYYYMMDD,
     ymd,
-    ymdStr
+    ymdStr,
+    NonNegativeInt, 
+    nonNegativeInt, 
+    int
 ) where
 
 import Test.QuickCheck
@@ -58,8 +61,8 @@ newtype YYYYMMDD = YYYYMMDD String
 -- Smart constructor for YYYYMMDD.
 -- String argument must be exactly 8 characters long.
 -- Year component must be integer from 0 to 9999 inclusive.
--- Month component must be integer from 1 to 12 inclusive. 
--- Day component must be integer from 1 to 31 inclusive. 
+-- Month component must be integer from 1 to 12 inclusive.
+-- Day component must be integer from 1 to 31 inclusive.
 ymd :: String -> Maybe YYYYMMDD
 ymd str = 
     let
@@ -81,6 +84,18 @@ ymd str =
 
 ymdStr :: YYYYMMDD -> String
 ymdStr (YYYYMMDD str) = str
+
+newtype NonNegativeInt = NonNegativeInt Int
+
+-- Smart constructor for NonNegativeInt
+nonNegativeInt :: Int -> Maybe NonNegativeInt
+nonNegativeInt i = 
+    if i >= 0 
+    then i & NonNegativeInt & Just 
+    else Nothing 
+
+int :: NonNegativeInt -> Int
+int (NonNegativeInt i) = i
 
 instance Arbitrary Day where
     arbitrary = 
