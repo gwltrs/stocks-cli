@@ -8,7 +8,7 @@ import Text.Read (readMaybe)
 import Data.Maybe (isNothing, fromJust)
 import Control.Category ((>>>))
 
-import Types (Stock(..), Day(..), ymd)
+import Types
 
 -- Produces strings that should always be accepted by the YYYYMMDD smart constructor
 goodYYYYMMDDStr :: Gen String
@@ -93,4 +93,4 @@ instance Arbitrary Day where
                 high = arbHigh & roundTo16th,
                 low = arbLow & roundTo16th,
                 close = arbClose & roundTo16th,
-                volume = arbVol }
+                volume = fromJust $ nonNegativeInt $ arbVol }

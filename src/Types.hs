@@ -42,10 +42,11 @@ data Day = Day {
     high :: Float,
     low :: Float,
     close :: Float,
-    volume :: Int
+    volume :: NonNegativeInt
 } deriving (Eq, Show)
 
-newtype YYYYMMDD = YYYYMMDD String deriving (Eq, Show)
+newtype YYYYMMDD = YYYYMMDD String
+    deriving (Eq, Show)
 
 -- Smart constructor for YYYYMMDD.
 -- String argument must be exactly 8 characters long.
@@ -74,7 +75,8 @@ ymd str =
 ymdStr :: YYYYMMDD -> String
 ymdStr (YYYYMMDD str) = str
 
-newtype NonNegativeInt = NonNegativeInt Int
+newtype NonNegativeInt = NonNegativeInt Int 
+    deriving (Eq, Show)
 
 -- Smart constructor for NonNegativeInt
 nonNegativeInt :: Int -> Maybe NonNegativeInt
@@ -87,6 +89,7 @@ int :: NonNegativeInt -> Int
 int (NonNegativeInt i) = i
 
 newtype NonNegativeRealFloat = NonNegativeRealFloat Float
+    deriving (Eq, Show)
 
 -- Smart constructor for NonNegativeRealFloat
 nonNegativeRealFloat :: Float -> Maybe NonNegativeRealFloat
