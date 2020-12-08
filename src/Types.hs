@@ -38,10 +38,10 @@ data Stock = Stock {
 
 data Day = Day {
     date :: YYYYMMDD,
-    open :: Float,
-    high :: Float,
-    low :: Float,
-    close :: Float,
+    open :: NonNegativeRealFloat,
+    high :: NonNegativeRealFloat,
+    low :: NonNegativeRealFloat,
+    close :: NonNegativeRealFloat,
     volume :: NonNegativeInt
 } deriving (Eq, Show)
 

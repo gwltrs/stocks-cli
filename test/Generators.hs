@@ -80,6 +80,8 @@ instance Arbitrary Day where
             -- JSON which enables roundtrip testing.
             roundTo16th :: Float -> Float
             roundTo16th x = ((x * 16.0) & round & realToFrac) / 16.0
+            sanitizeFloat f = 
+                fromJust $ nonNegativeRealFloat $ roundTo16th $ f
         in do
             arbYYYYMMDD <- goodYYYYMMDDStr <&> ymd <&> fromJust
             NonNegative arbOpen <- arbitrary
@@ -89,8 +91,8 @@ instance Arbitrary Day where
             NonNegative arbVol <- arbitrary
             return Day { 
                 date = arbYYYYMMDD,
-                open = arbOpen & roundTo16th,
-                high = arbHigh & roundTo16th,
-                low = arbLow & roundTo16th,
-                close = arbClose & roundTo16th,
+                open = sanitizeFloat arbOpen,
+                high = sanitizeFloat arbHigh,
+                low = sanitizeFloat arbLow,
+                close = sanitizeFloat arbClose,
                 volume = fromJust $ nonNegativeInt $ arbVol }
