@@ -8,6 +8,7 @@ import Data.Maybe (fromJust)
 
 import Generators
 import Types
+import Unsafe
 
 typesTests :: SpecWith ()
 typesTests = do
@@ -15,11 +16,11 @@ typesTests = do
         it "should create YYYYMMDD when given valid string" $ do
             property
                 $ forAll goodYYYYMMDDStr 
-                $ \str -> ((ymd str) <&> ymdStr) == Just str
+                $ \s -> ((ymd s) <&> str) == Just s
         it "should fail when given invalid string" $ do
             property
                $ forAll badYYYYMMDDStr 
-               $ \str -> ((ymd str) <&> ymdStr) == Nothing
+               $ \s -> ((ymd s) <&> str) == Nothing
     describe "Types.nonNegativeInt" $ do
         it "should create NonNegativeInt when given valid integer" $ do
             property
@@ -41,34 +42,12 @@ typesTests = do
     describe "Types.day" $ do
         it "should create day when given valid inputs" $ do
             property
-                $ forAll goodDayProperties
-                $ \gdp -> ((uncurry6 day) gdp <&> dayToTuple) == Just gdp
+                $ forAll goodDayRaw
+                $ \dr -> (day dr <&> raw) == Just dr
         it "should fail when given invalid inputs" $ do
-            dayFromLiterals "12340408" 2.5 2.0 0.5 1.0 50 -- open > high
+            day (unsafeDayRaw "12340408" 2.5 2.0 0.5 1.0 50) -- open > high
                 `shouldBe` Nothing
-            dayFromLiterals "11111111" 111.1 100.5 99.9 88.88 777777 -- close < low
+            day (unsafeDayRaw "11111111" 111.1 100.5 99.9 88.88 777777) -- close < low
                 `shouldBe` Nothing
-            dayFromLiterals "20201225" 0.0 2.0 1.0 3.0 5 -- open < low, close > high
+            day (unsafeDayRaw "20201225" 0.0 2.0 1.0 3.0 5) -- open < low, close > high
                 `shouldBe` Nothing
-
-uncurry6 :: (a -> b -> c -> d -> e -> f -> g) -> (a, b, c, d, e, f) -> g
-uncurry6 f (x, y, z, w, v, u) = f x y z w v u
-
-dayToTuple :: Day -> (
-    YYYYMMDD, 
-    NonNegativeRealFloat, 
-    NonNegativeRealFloat, 
-    NonNegativeRealFloat, 
-    NonNegativeRealFloat, 
-    NonNegativeInt)
-dayToTuple d = (date d, open d, high d, low d, close d, volume d)
-
-dayFromLiterals :: String -> Float -> Float -> Float -> Float -> Int -> Maybe Day
-dayFromLiterals d o h l c v = 
-    day 
-        (fromJust $ ymd $ d)
-        (fromJust $ nonNegativeRealFloat $ o)
-        (fromJust $ nonNegativeRealFloat $ h)
-        (fromJust $ nonNegativeRealFloat $ l)
-        (fromJust $ nonNegativeRealFloat $ c)
-        (fromJust $ nonNegativeInt $ v)

@@ -4,8 +4,9 @@ import Data.Function ((&))
 import Data.List.Extra (notNull)
 import Data.Functor ((<&>))
 import Data.Foldable (foldr1)
+import Control.Category ((>>>))
 
-import Types (CLICommand(name, description), Stock(days), Day(date), ymd, ymdStr)
+import Types
 
 -- User-visible description of the command.
 prettifyCmd :: CLICommand -> String
@@ -17,11 +18,11 @@ prettifyStocks stocks =
     let
         stocksWithDays = filter (notNull . days) stocks
         stocksLengthStr = stocksWithDays & length & show
-        earliestDate = stocks <&> days 
-            <&> head <&> date <&> ymdStr 
+        earliestDate = stocks 
+            <&> (days >>> head >>> raw >>> date >>> str) 
             & foldr1 min & prettifyDate
-        latestDate = stocks <&> days 
-            <&> last <&> date <&> ymdStr 
+        latestDate = stocks 
+            <&> (days >>> last >>> raw >>> date >>> str)
             & foldr1 max & prettifyDate
     in
         if notNull stocksWithDays

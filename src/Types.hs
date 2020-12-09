@@ -2,8 +2,9 @@ module Types (
     CLICommand(..), 
     CLIState(..), 
     Stock(..),
-    Day, day, date, open, high, low, close, volume,
-    YYYYMMDD, ymd, ymdStr,
+    Day, day, raw,
+    DayRaw(..), dayRaw,
+    YYYYMMDD, ymd, str,
     NonNegativeInt, nonNegativeInt, int,
     NonNegativeRealFloat, nonNegativeRealFloat, flt
 ) where
@@ -36,7 +37,15 @@ data Stock = Stock {
     days :: [Day]
 } deriving (Eq, Show)
 
-data Day = Day {
+-- Newtype that enforces the following invariants:
+-- high is the maximum value in [open, high, low, close]
+-- and low is the minimum value in [open, high, low, close].
+newtype Day = Day DayRaw
+    deriving (Eq, Show)
+
+-- The Day type without enforced invariants
+-- (besides the invariants enforced by the properties).
+data DayRaw = DayRaw {
     date :: YYYYMMDD,
     open :: NonNegativeRealFloat,
     high :: NonNegativeRealFloat,
@@ -45,24 +54,38 @@ data Day = Day {
     volume :: NonNegativeInt
 } deriving (Eq, Show)
 
+-- Convenience constructor for DayRaw.
+dayRaw ::
+    YYYYMMDD 
+    -> NonNegativeRealFloat 
+    -> NonNegativeRealFloat 
+    -> NonNegativeRealFloat 
+    -> NonNegativeRealFloat 
+    -> NonNegativeInt
+    -> DayRaw
+dayRaw d o h l c v = DayRaw {
+    date = d, open = o, high = h, low = l, close = c, volume = v }
+
+-- Extracts DayRaw from Day.
+raw :: Day -> DayRaw
+raw (Day dr) = dr
+
 -- Smart constructor for Day. Asserts that 
 -- high is the maximum value in [open, high, low, close]
--- and low is the minimum value of [open, high, low, close]
-day :: YYYYMMDD -> NonNegativeRealFloat -> NonNegativeRealFloat -> NonNegativeRealFloat -> NonNegativeRealFloat -> NonNegativeInt -> Maybe Day
-day date open high low close volume = 
-    let allFloats = [open, high, low, close] <&> flt
+-- and low is the minimum value in [open, high, low, close]
+day :: DayRaw -> Maybe Day
+day dr = 
+    let 
+        allFloats = [open dr, high dr, low dr, close dr] <&> flt
+        invalidLow = (flt $ low $ dr) > foldr1 min allFloats
+        invalidHigh = (flt $ high $ dr) < foldr1 max allFloats
     in
-        if flt low > foldr1 min allFloats || flt high < foldr1 max allFloats then
+        if invalidLow || invalidHigh then
             Nothing
         else
-            Just Day {
-                date = date,
-                open = open,
-                high = high,
-                low = low,
-                close = close,
-                volume = volume }
+            Just $ Day $ dr
 
+-- Newtype that enforces that YYYYMMDD date format invariant.
 newtype YYYYMMDD = YYYYMMDD String
     deriving (Eq, Show)
 
@@ -90,19 +113,22 @@ ymd str =
         then Just (YYYYMMDD str) 
         else Nothing
 
-ymdStr :: YYYYMMDD -> String
-ymdStr (YYYYMMDD str) = str
+-- Extracts String from YYYYMMDD.
+str :: YYYYMMDD -> String
+str (YYYYMMDD str) = str
 
+-- Int newtype that disallows negative values.
 newtype NonNegativeInt = NonNegativeInt Int 
     deriving (Eq, Show)
 
--- Smart constructor for NonNegativeInt
+-- Smart constructor for NonNegativeInt.
 nonNegativeInt :: Int -> Maybe NonNegativeInt
 nonNegativeInt i = 
     if i >= 0 
     then Just $ NonNegativeInt $ i  
     else Nothing 
 
+-- Extracts Int from NonNegativeInt.
 int :: NonNegativeInt -> Int
 int (NonNegativeInt i) = i
 
@@ -117,5 +143,6 @@ nonNegativeRealFloat f =
     else 
         Just $ NonNegativeRealFloat $ f
 
+-- Extracts Float from NonNegativeRealFloat.
 flt :: NonNegativeRealFloat -> Float
 flt (NonNegativeRealFloat f) = f

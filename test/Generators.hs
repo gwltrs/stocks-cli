@@ -52,15 +52,9 @@ badYYYYMMDDStr =
             -- Generating not-integer, 8-length strings
             suchThat ((arbitrary :: Gen Char) & vectorOf 8) notInt]
 
--- Produces (date, open, high, low, close, volume) values that should always be accepted by the Day smart constructor.
-goodDayProperties :: Gen (
-    YYYYMMDD, 
-    NonNegativeRealFloat, 
-    NonNegativeRealFloat, 
-    NonNegativeRealFloat, 
-    NonNegativeRealFloat, 
-    NonNegativeInt)
-goodDayProperties = do
+-- Produces DayRaw values that should always be accepted by the Day smart constructor.
+goodDayRaw :: Gen DayRaw
+goodDayRaw = do
     (low, high) <- choose (0, maxFloat) 
         & vectorOf 2 
         <&> (\l -> (foldr1 min l, foldr1 min l))
@@ -68,13 +62,13 @@ goodDayProperties = do
     close <- choose (0, 1) <&> shiftRange (0, 1) (low, high)
     date <- goodYYYYMMDDStr <&> ymd <&> fromJust
     volume <- choose (0, maxBound) <&> nonNegativeInt <&> fromJust
-    pure (
-        date, 
-        fromJust $ nonNegativeRealFloat $ open, 
-        fromJust $ nonNegativeRealFloat $ high, 
-        fromJust $ nonNegativeRealFloat $ low, 
-        fromJust $ nonNegativeRealFloat $ close, 
-        volume)
+    pure DayRaw {
+        date = date, 
+        open = fromJust $ nonNegativeRealFloat $ open, 
+        high = fromJust $ nonNegativeRealFloat $ high, 
+        low = fromJust $ nonNegativeRealFloat $ low, 
+        close = fromJust $ nonNegativeRealFloat $ close, 
+        volume = volume }
 
 -- Generates Float values that aren't real including NaN and +/- Infinity.
 nonRealFloat :: Gen Float
@@ -91,9 +85,7 @@ instance Arbitrary Stock where
         return Stock { symbol = arbSymbol, days = arbDays }
 
 instance Arbitrary Day where
-    arbitrary = do
-        (d, o, h, l, c, v) <- goodDayProperties
-        pure $ fromJust $ day d o h l c v
+    arbitrary = goodDayRaw <&> (day >>> fromJust)
 
 -- Adds up to leadings zeros to the string.
 leadZeros :: Int -> String -> String
@@ -109,13 +101,8 @@ minFloat = -3.4 * 10 ** 38
 maxFloat :: Float
 maxFloat = 3.4 * 10 ** 38
 
--- Ensures lossless conversion to and from 
--- JSON which enables roundtrip testing.
-roundTo16th :: Float -> Float
-roundTo16th x = ((x * 16.0) & round & realToFrac) / 16.0
-
 -- Converts the given number from one range to another.
--- Example: rangeShift (0, 1) (100, 200) 0.5 == 150.
+-- Example: shiftRange (0, 1) (100, 200) 0.5 == 150.
 shiftRange :: (Float, Float) -> (Float, Float) -> Float -> Float
 shiftRange (oldMin, oldMax) (newMin, newMax) oldValue = 
     -- Copied from https://stackoverflow.com/a/929107/4102858

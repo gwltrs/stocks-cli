@@ -11,6 +11,7 @@ import Data.Maybe (fromJust)
 import Types
 import StocksCompactJSON (toStocksCompactJSON, parseStocksCompactJSON)
 import Generators
+import Unsafe
 
 stocksCompactJSONTests :: SpecWith ()
 stocksCompactJSONTests = do
@@ -32,20 +33,8 @@ appleStock = [
     Stock { 
         symbol = "AAPL",
         days = [
-            fromJust $ day
-                (fromJust $ ymd $ "20200323")
-                (fromJust $ nonNegativeRealFloat $ 57.0)
-                (fromJust $ nonNegativeRealFloat $ 57.125)
-                (fromJust $ nonNegativeRealFloat $ 53.25)
-                (fromJust $ nonNegativeRealFloat $ 56.125)
-                (fromJust $ nonNegativeInt $ 336_752_800),
-            fromJust $ day
-                (fromJust $ ymd $ "20200324")
-                (fromJust $ nonNegativeRealFloat $ 59.125)
-                (fromJust $ nonNegativeRealFloat $ 62.0)
-                (fromJust $ nonNegativeRealFloat $ 58.5)
-                (fromJust $ nonNegativeRealFloat $ 61.725)
-                (fromJust $ nonNegativeInt $ 287_530_816) ] } ] 
+            unsafeDay "20200323" 57.0 57.125 53.25 56.125 336_752_800,
+            unsafeDay "20200324" 59.125 62.0 58.5 61.725 287_530_816] } ] 
 
 appleCompactJSON :: Text
 appleCompactJSON = 

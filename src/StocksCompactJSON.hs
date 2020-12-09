@@ -25,12 +25,12 @@ toStocksCompactJSON stocks =
         toJSONArray txts = 
             "[" <> (intercalate "," txts) <> "]"
         dayToTxtVals d = [
-            d & date & ymdStr & toJSONTxt, 
-            d & open & flt & show & pack, 
-            d & high & flt & show & pack, 
-            d & low & flt & show & pack, 
-            d & close & flt & show & pack,
-            d & volume & int & show & pack]
+            d & raw & date & str & toJSONTxt, 
+            d & raw & open & flt & show & pack, 
+            d & raw & high & flt & show & pack, 
+            d & raw & low & flt & show & pack, 
+            d & raw & close & flt & show & pack,
+            d & raw & volume & int & show & pack]
         dayToJSON = dayToTxtVals >>> toJSONArray 
         stockToJSON s =
             toJSONArray [s & symbol & toJSONTxt, days s <&> dayToJSON & toJSONArray]
@@ -92,14 +92,14 @@ toDay :: Value -> Maybe Day
 toDay val = 
     let 
         dayFromVec vec = 
-            day
+            dayRaw
                 <$> (vec & (!? 0) >>= toString >>= ymd)
                 <*> (vec & (!? 1) >>= toFloat >>= nonNegativeRealFloat)
                 <*> (vec & (!? 2) >>= toFloat >>= nonNegativeRealFloat)
                 <*> (vec & (!? 3) >>= toFloat >>= nonNegativeRealFloat)
                 <*> (vec & (!? 4) >>= toFloat >>= nonNegativeRealFloat)
                 <*> (vec & (!? 5) >>= toInt >>= nonNegativeInt)
-                & join
+                >>= day
     in
         toVector val >>= dayFromVec
 
