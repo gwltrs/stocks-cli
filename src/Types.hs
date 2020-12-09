@@ -2,7 +2,7 @@ module Types (
     CLICommand(..), 
     CLIState(..), 
     Stock(..),
-    Day(..),
+    Day, day, date, open, high, low, close, volume,
     YYYYMMDD, ymd, ymdStr,
     NonNegativeInt, nonNegativeInt, int,
     NonNegativeRealFloat, nonNegativeRealFloat, flt
@@ -44,6 +44,24 @@ data Day = Day {
     close :: NonNegativeRealFloat,
     volume :: NonNegativeInt
 } deriving (Eq, Show)
+
+-- Smart constructor for Day. Asserts that 
+-- high is the maximum value in [open, high, low, close]
+-- and low is the minimum value of [open, high, low, close]
+day :: YYYYMMDD -> NonNegativeRealFloat -> NonNegativeRealFloat -> NonNegativeRealFloat -> NonNegativeRealFloat -> NonNegativeInt -> Maybe Day
+day date open high low close volume = 
+    let allFloats = [open, high, low, close] <&> flt
+    in
+        if flt low > foldr1 min allFloats || flt high < foldr1 max allFloats then
+            Nothing
+        else
+            Just Day {
+                date = date,
+                open = open,
+                high = high,
+                low = low,
+                close = close,
+                volume = volume }
 
 newtype YYYYMMDD = YYYYMMDD String
     deriving (Eq, Show)

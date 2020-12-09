@@ -7,10 +7,11 @@ import Data.Function ((&))
 import Text.Read (readMaybe)
 import Data.Maybe (isNothing, fromJust)
 import Control.Category ((>>>))
+import Data.Foldable (foldr1)
 
 import Types
 
--- Produces strings that should always be accepted by the YYYYMMDD smart constructor
+-- Produces strings that should always be accepted by the YYYYMMDD smart constructor.
 goodYYYYMMDDStr :: Gen String
 goodYYYYMMDDStr = 
     let 
@@ -21,7 +22,7 @@ goodYYYYMMDDStr =
     in
         concatAll <$> yyyy <*> mm <*> dd
 
--- Produces strings that should never be accepted by the YYYYMMDD smart constructor
+-- Produces strings that should never be accepted by the YYYYMMDD smart constructor.
 badYYYYMMDDStr :: Gen String
 badYYYYMMDDStr = 
     let 
@@ -34,7 +35,7 @@ badYYYYMMDDStr =
         -- Never all 0's
         arbIndices = suchThat (choose (0, 1) & vectorOf 3) (sum >>> (>0)) 
         asPair a b = (\c d -> [c, d]) <$> a <*> b
-        concatAll i y m d = zip i [y, m, d] <&> (\t -> (snd t) !! (fst t)) & concat --(y !! (i !! 0)) ++ (m !! (i !! 1)) ++ (d !! (i !! 2))
+        concatAll i y m d = zip i [y, m, d] <&> (\t -> (snd t) !! (fst t)) & concat
         allDigits = (choose (0, 9) :: Gen Int) <&> show & listOf <&> concat
         notInt str = isNothing (readMaybe str :: Maybe Int)
         
@@ -49,23 +50,39 @@ badYYYYMMDDStr =
             -- Generating all-digit, not-8-length strings
             suchThat allDigits (\str -> length str /= 8),
             -- Generating not-integer, 8-length strings
-            suchThat ((arbitrary :: Gen Char) & vectorOf 8) notInt
-            ]
-        
--- Generates Float values that aren't real including NaN and +/- Infinity
+            suchThat ((arbitrary :: Gen Char) & vectorOf 8) notInt]
+
+-- Produces (date, open, high, low, close, volume) values that should always be accepted by the Day smart constructor.
+goodDayProperties :: Gen (
+    YYYYMMDD, 
+    NonNegativeRealFloat, 
+    NonNegativeRealFloat, 
+    NonNegativeRealFloat, 
+    NonNegativeRealFloat, 
+    NonNegativeInt)
+goodDayProperties = do
+    (low, high) <- choose (0, maxFloat) 
+        & vectorOf 2 
+        <&> (\l -> (foldr1 min l, foldr1 min l))
+    open <- choose (0, 1) <&> shiftRange (0, 1) (low, high)
+    close <- choose (0, 1) <&> shiftRange (0, 1) (low, high)
+    date <- goodYYYYMMDDStr <&> ymd <&> fromJust
+    volume <- choose (0, maxBound) <&> nonNegativeInt <&> fromJust
+    pure (
+        date, 
+        fromJust $ nonNegativeRealFloat $ open, 
+        fromJust $ nonNegativeRealFloat $ high, 
+        fromJust $ nonNegativeRealFloat $ low, 
+        fromJust $ nonNegativeRealFloat $ close, 
+        volume)
+
+-- Generates Float values that aren't real including NaN and +/- Infinity.
 nonRealFloat :: Gen Float
 nonRealFloat =
     oneof [
         pure $ read "Infinity",
         pure $ read "-Infinity",
-        pure $ read "NaN"
-    ]
-
--- Adds up to leadings zeros to the string 
-leadZeros :: Int -> String -> String
-leadZeros n str = 
-    let ys = take n str
-    in replicate (n - length ys) '0' ++ ys
+        pure $ read "NaN"]
 
 instance Arbitrary Stock where
     arbitrary = do
@@ -74,25 +91,32 @@ instance Arbitrary Stock where
         return Stock { symbol = arbSymbol, days = arbDays }
 
 instance Arbitrary Day where
-    arbitrary = 
-        let
-            -- Ensures lossless conversion to and from 
-            -- JSON which enables roundtrip testing.
-            roundTo16th :: Float -> Float
-            roundTo16th x = ((x * 16.0) & round & realToFrac) / 16.0
-            sanitizeFloat f = 
-                fromJust $ nonNegativeRealFloat $ roundTo16th $ f
-        in do
-            arbYYYYMMDD <- goodYYYYMMDDStr <&> ymd <&> fromJust
-            NonNegative arbOpen <- arbitrary
-            NonNegative arbHigh <- arbitrary
-            NonNegative arbLow <- arbitrary
-            NonNegative arbClose <- arbitrary
-            NonNegative arbVol <- arbitrary
-            return Day { 
-                date = arbYYYYMMDD,
-                open = sanitizeFloat arbOpen,
-                high = sanitizeFloat arbHigh,
-                low = sanitizeFloat arbLow,
-                close = sanitizeFloat arbClose,
-                volume = fromJust $ nonNegativeInt $ arbVol }
+    arbitrary = do
+        (d, o, h, l, c, v) <- goodDayProperties
+        pure $ fromJust $ day d o h l c v
+
+-- Adds up to leadings zeros to the string.
+leadZeros :: Int -> String -> String
+leadZeros n str = 
+    let ys = take n str
+    in replicate (n - length ys) '0' ++ ys
+
+-- Approximate minimum value of IEEE single-precision float
+minFloat :: Float
+minFloat = -3.4 * 10 ** 38
+
+-- Approximate maximum value of IEEE single-precision float
+maxFloat :: Float
+maxFloat = 3.4 * 10 ** 38
+
+-- Ensures lossless conversion to and from 
+-- JSON which enables roundtrip testing.
+roundTo16th :: Float -> Float
+roundTo16th x = ((x * 16.0) & round & realToFrac) / 16.0
+
+-- Converts the given number from one range to another.
+-- Example: rangeShift (0, 1) (100, 200) 0.5 == 150.
+shiftRange :: (Float, Float) -> (Float, Float) -> Float -> Float
+shiftRange (oldMin, oldMax) (newMin, newMax) oldValue = 
+    -- Copied from https://stackoverflow.com/a/929107/4102858
+    (((oldValue - oldMin) * (newMax - newMin)) / (oldMax - oldMin)) + newMin

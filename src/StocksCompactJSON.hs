@@ -12,6 +12,7 @@ import Data.ByteString.Lazy (ByteString, fromStrict, toStrict)
 import Data.Text.Encoding (encodeUtf8, decodeUtf8)
 import Data.Vector (Vector, mapMaybe, toList, (!?), length)
 import Data.Scientific (toBoundedInteger, toRealFloat)
+import Control.Monad (join)
 
 import Types
 
@@ -90,8 +91,6 @@ toMappedVector f val = case val of
 toDay :: Value -> Maybe Day
 toDay val = 
     let 
-        day d o h l c v =
-            Day { date = d, open = o, high = h, low = l, close = c, volume = v }
         dayFromVec vec = 
             day
                 <$> (vec & (!? 0) >>= toString >>= ymd)
@@ -100,6 +99,7 @@ toDay val =
                 <*> (vec & (!? 3) >>= toFloat >>= nonNegativeRealFloat)
                 <*> (vec & (!? 4) >>= toFloat >>= nonNegativeRealFloat)
                 <*> (vec & (!? 5) >>= toInt >>= nonNegativeInt)
+                & join
     in
         toVector val >>= dayFromVec
 

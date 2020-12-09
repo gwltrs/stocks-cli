@@ -32,20 +32,20 @@ appleStock = [
     Stock { 
         symbol = "AAPL",
         days = [
-            Day {
-                date = fromJust $ ymd $ "20200323",
-                open = fromJust $ nonNegativeRealFloat $ 57.0,
-                high = fromJust $ nonNegativeRealFloat $ 57.125,
-                low = fromJust $ nonNegativeRealFloat $ 53.25,
-                close = fromJust $ nonNegativeRealFloat $ 56.125,
-                volume = fromJust $ nonNegativeInt $ 336_752_800 },
-            Day {
-                date = fromJust $ ymd $ "20200324",
-                open = fromJust $ nonNegativeRealFloat $ 59.125,
-                high = fromJust $ nonNegativeRealFloat $ 62.0,
-                low = fromJust $ nonNegativeRealFloat $ 58.5,
-                close = fromJust $ nonNegativeRealFloat $ 61.725,
-                volume = fromJust $ nonNegativeInt $ 287_530_816 } ] } ]
+            fromJust $ day
+                (fromJust $ ymd $ "20200323")
+                (fromJust $ nonNegativeRealFloat $ 57.0)
+                (fromJust $ nonNegativeRealFloat $ 57.125)
+                (fromJust $ nonNegativeRealFloat $ 53.25)
+                (fromJust $ nonNegativeRealFloat $ 56.125)
+                (fromJust $ nonNegativeInt $ 336_752_800),
+            fromJust $ day
+                (fromJust $ ymd $ "20200324")
+                (fromJust $ nonNegativeRealFloat $ 59.125)
+                (fromJust $ nonNegativeRealFloat $ 62.0)
+                (fromJust $ nonNegativeRealFloat $ 58.5)
+                (fromJust $ nonNegativeRealFloat $ 61.725)
+                (fromJust $ nonNegativeInt $ 287_530_816) ] } ] 
 
 appleCompactJSON :: Text
 appleCompactJSON = 
