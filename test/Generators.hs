@@ -8,8 +8,12 @@ import Text.Read (readMaybe)
 import Data.Maybe (isNothing, fromJust)
 import Control.Category ((>>>))
 import Data.Foldable (foldr1)
+import qualified Data.List.NonEmpty as NE (NonEmpty, fromList)
+import Data.Sort (sortOn, uniqueSortOn)
 
+import Predundant
 import Types
+import Unsafe
 
 -- Produces strings that should always be accepted by the YYYYMMDD smart constructor.
 goodYYYYMMDDStr :: Gen String
@@ -38,7 +42,6 @@ badYYYYMMDDStr =
         concatAll i y m d = zip i [y, m, d] <&> (\t -> (snd t) !! (fst t)) & concat
         allDigits = (choose (0, 9) :: Gen Int) <&> show & listOf <&> concat
         notInt str = isNothing (readMaybe str :: Maybe Int)
-        
     in
         oneof [
             -- Generating strings where at least one component (YYYY, MM, DD) is invalid
@@ -70,6 +73,38 @@ goodDayRaw = do
         close = fromJust $ nonNegativeRealFloat $ close, 
         volume = volume }
 
+-- Produces values that should always be accepted by the Stock smart constructor.
+goodStockArgs :: Gen (String, NE.NonEmpty Day)
+goodStockArgs = do
+    symbol <- arbitrary
+    days <- listOf1 goodDayRaw
+        <&> uniqueSortOn date
+        <<&>> (day >>> fromJust)
+        <&> NE.fromList
+    pure (symbol, days)
+
+-- Produces values that should never be accepted by the Stock smart constructor.
+badStockArgs :: Gen (String, NE.NonEmpty Day)
+badStockArgs = do
+    symbol <- arbitrary
+    -- Has at least 2 elements and possibly has duplicate dates
+    days <- (++)
+        <$> (listOf goodDayRaw <&> concatMap (replicate 2))
+        <*> listOf1 goodDayRaw
+        & (flip suchThat) (length >>> (>= 2))
+    -- Random indices to swap elements on
+    (i0, i1) <- choose (0, (length days) - 1)
+        & vectorOf 2
+        <&> first2
+        & (flip suchThat) (\t -> fst t /= snd t)
+    -- Invalid because it has out-of-order dates and/or duplicate dates
+    badDays <- days
+        & sortOn date
+        & swap i0 i1
+        <&> (day >>> fromJust)
+        & NE.fromList & pure
+    pure (symbol, badDays)
+
 -- Generates Float values that aren't real including NaN and +/- Infinity.
 nonRealFloat :: Gen Float
 nonRealFloat =
@@ -80,9 +115,8 @@ nonRealFloat =
 
 instance Arbitrary Stock where
     arbitrary = do
-        ASCIIString arbSymbol <- arbitrary
-        arbDays <- arbitrary
-        return Stock { symbol = arbSymbol, days = arbDays }
+        (symbol, days) <- goodStockArgs
+        pure $ fromJust $ stock symbol days
 
 instance Arbitrary Day where
     arbitrary = goodDayRaw <&> (day >>> fromJust)
@@ -107,3 +141,10 @@ shiftRange :: (Float, Float) -> (Float, Float) -> Float -> Float
 shiftRange (oldMin, oldMax) (newMin, newMax) oldValue = 
     -- Copied from https://stackoverflow.com/a/929107/4102858
     (((oldValue - oldMin) * (newMax - newMin)) / (oldMax - oldMin)) + newMin
+
+-- Swaps two elements in a list
+swap :: Int -> Int -> [a] -> [a]
+swap a b list = list1 ++ [list !! b] ++ list2 ++ [list !! a] ++ list3
+    where   list1 = take a list;
+            list2 = drop (succ a) (take b list);
+            list3 = drop (succ b) list

@@ -30,11 +30,11 @@ stocksCompactJSONTests = do
 
 appleStock :: [Stock]
 appleStock = [
-    Stock { 
-        symbol = "AAPL",
-        days = [
+    unsafeStock
+        "AAPL"
+        [
             unsafeDay "20200323" 57.0 57.125 53.25 56.125 336_752_800,
-            unsafeDay "20200324" 59.125 62.0 58.5 61.725 287_530_816] } ] 
+            unsafeDay "20200324" 59.125 62.0 58.5 61.725 287_530_816] ] 
 
 appleCompactJSON :: Text
 appleCompactJSON = 

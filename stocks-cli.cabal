@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 91d0cc29b78429fc48595e1518c7ddcc53ed92f0e2032415ccd4d3857484975e
+-- hash: 26398180f034ecee4efe7e033c8f9da9f5de1f184fdd4a273cb6d0bf02c9a959
 
 name:           stocks-cli
 version:        0.1.0.0
@@ -30,6 +30,7 @@ library
       CLI
       CLICommands
       Constants
+      Predundant
       Prettify
       SafeIO
       StocksCompactJSON
@@ -50,6 +51,7 @@ library
     , hspec
     , lens
     , scientific
+    , sort
     , text
     , vector
     , wreq
@@ -72,6 +74,7 @@ executable stocks-cli-exe
     , hspec
     , lens
     , scientific
+    , sort
     , stocks-cli
     , text
     , vector
@@ -103,6 +106,7 @@ test-suite stocks-cli-test
     , hspec
     , lens
     , scientific
+    , sort
     , stocks-cli
     , text
     , vector

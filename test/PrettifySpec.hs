@@ -3,7 +3,7 @@ module PrettifySpec where
 import Test.Hspec
 import Data.Function ((&))
 
-import Types (CLICommand(..), Stock(..))
+import Types
 import Prettify (prettifyCmd, prettifyStocks, prettifyDate)
 import ValidatedLiterals (ValidatedLiterals(..), validatedLiterals)
 
@@ -16,7 +16,6 @@ prettifyTests = do
     describe "Prettify.prettifyStocks" $ do
         it "shows 0 stocks" $ do
             prettifyStocks [] `shouldBe` "0 stocks"
-            prettifyStocks stocksWithoutDays `shouldBe` "0 stocks"
         it "shows 2 stocks" $ do
             prettifyStocks (validatedLiterals & testStocks) `shouldBe` "2 stocks from 1/2/2019 to 10/1/2020"
     describe "Prettify.prettifyDate" $ do
@@ -30,9 +29,3 @@ helpMeCmd = CLICommand { name = ["help", "me"], description = "Lists all the com
     
 downloadCmd :: CLICommand
 downloadCmd = CLICommand { name = ["download"], description = "Gets data from the server", effect = pure }
-
-stocksWithoutDays :: [Stock]
-stocksWithoutDays = [
-    Stock { symbol = "A", days = [] },
-    Stock { symbol = "B", days = [] },
-    Stock { symbol = "C", days = [] } ]

@@ -13,6 +13,7 @@ import Data.Text.Encoding (encodeUtf8, decodeUtf8)
 import Data.Vector (Vector, mapMaybe, toList, (!?), length)
 import Data.Scientific (toBoundedInteger, toRealFloat)
 import Control.Monad (join)
+import qualified Data.List.NonEmpty as NE (nonEmpty, toList)
 
 import Types
 
@@ -33,7 +34,9 @@ toStocksCompactJSON stocks =
             d & raw & volume & int & show & pack]
         dayToJSON = dayToTxtVals >>> toJSONArray 
         stockToJSON s =
-            toJSONArray [s & symbol & toJSONTxt, days s <&> dayToJSON & toJSONArray]
+            toJSONArray [
+                s & symbol & toJSONTxt, 
+                days s & NE.toList <&> dayToJSON & toJSONArray]
     in
         stocks <&> stockToJSON & toJSONArray
 
@@ -107,10 +110,10 @@ toDay val =
 toStock :: Value -> Maybe Stock
 toStock val = 
     let 
-        stock s d = Stock { symbol = s, days = toList d }
         stockFromVec vec = 
             stock 
                 <$> (vec & (!? 0) >>= toString)
-                <*> (vec & (!? 1) >>= toMappedVector toDay)
+                <*> (vec & (!? 1) >>= toMappedVector toDay <&> toList >>= NE.nonEmpty)
+                & join
     in 
         toVector val >>= stockFromVec

@@ -51,3 +51,15 @@ typesTests = do
                 `shouldBe` Nothing
             day (unsafeDayRaw "20201225" 0.0 2.0 1.0 3.0 5) -- open < low, close > high
                 `shouldBe` Nothing
+    describe "Types.stock" $ do
+        it "should create stock when given valid inputs" $ do
+            property
+               $ forAll goodStockArgs
+               $ \args -> 
+                   (args & (uncurry stock) <&> (\m -> (symbol m, days m))) == Just args
+        it "should fail when given invalid inputs" $ do
+            property
+                $ forAll badStockArgs
+                $ \args -> 
+                    (args & (uncurry stock) <&> (\m -> (symbol m, days m))) == Nothing
+                    

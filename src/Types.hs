@@ -1,7 +1,7 @@
 module Types (
     CLICommand(..), 
     CLIState(..), 
-    Stock(..),
+    Stock, stock, symbol, days,
     Day, day, raw,
     DayRaw(..), dayRaw,
     YYYYMMDD, ymd, str,
@@ -15,6 +15,8 @@ import Data.Function ((&))
 import Data.Coerce (coerce)
 import Data.Maybe (isJust, fromMaybe)
 import Text.Read (readMaybe)
+import qualified Data.List.NonEmpty as NE (NonEmpty(..), toList)
+import Control.Category ((>>>))
 
 data CLICommand = CLICommand {
     -- Whitespace-delimited text the user enters to executed the command
@@ -31,11 +33,28 @@ data CLIState = CLIState {
     stocks :: [Stock]
 }
 
-data Stock = Stock {
-    symbol :: String,
-    -- Days should be in ascending order according to date
-    days :: [Day]
-} deriving (Eq, Show)
+data Stock = Stock String (NE.NonEmpty Day)
+    deriving (Eq, Show)
+
+stock :: String -> NE.NonEmpty Day -> Maybe Stock
+stock symbol days = 
+    let 
+        leftDates = NE.toList days <&> (raw >>> date >>> str)
+        rightDates = tail leftDates
+        datesAreGood = zipWith (<) leftDates rightDates
+            & foldr1 (&&)
+    in 
+        if (length days == 1) || datesAreGood
+        then Just (Stock symbol days)
+        else Nothing
+
+-- Gets the stock's symbol
+symbol :: Stock -> String
+symbol (Stock s _) = s
+
+-- Gets the stock's days
+days :: Stock -> NE.NonEmpty Day
+days (Stock _ d) = d
 
 -- Newtype that enforces the following invariants:
 -- high is the maximum value in [open, high, low, close]
@@ -87,7 +106,7 @@ day dr =
 
 -- Newtype that enforces that YYYYMMDD date format invariant.
 newtype YYYYMMDD = YYYYMMDD String
-    deriving (Eq, Show)
+    deriving (Eq, Show, Ord)
 
 -- Smart constructor for YYYYMMDD.
 -- String argument must be exactly 8 characters long.

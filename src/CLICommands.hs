@@ -13,6 +13,7 @@ import Network.Wreq (get, responseBody)
 import Control.Lens.Getter ((^.))
 import System.Environment (lookupEnv)
 
+import Predundant
 import Types (CLICommand(..), CLIState(stocks))
 import Prettify (prettifyCmd, prettifyStocks)
 import StocksCompactJSON (toStocksCompactJSON, parseStocksCompactJSON)
@@ -72,7 +73,7 @@ cliCommands = [
         description = "Loads a stocks data set from a file", 
         effect = (\s ->
             prompt "Path: " >>= readFileSafely
-                <&> (<&> parseStocksCompactJSON)
+                <<&>> parseStocksCompactJSON
                 <&> either 
                     (\readErr -> ("File read failed\n" ++ readErr, s))
                     (maybe 

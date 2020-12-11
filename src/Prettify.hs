@@ -5,6 +5,7 @@ import Data.List.Extra (notNull)
 import Data.Functor ((<&>))
 import Data.Foldable (foldr1)
 import Control.Category ((>>>))
+import qualified Data.List.NonEmpty as NE (head, last)
 
 import Types
 
@@ -16,18 +17,17 @@ prettifyCmd cmd = "\"" ++ (cmd & name & unwords) ++ "\": " ++ description cmd
 prettifyStocks :: [Stock] -> String
 prettifyStocks stocks =
     let
-        stocksWithDays = filter (notNull . days) stocks
-        stocksLengthStr = stocksWithDays & length & show
+        lenStr = stocks & length & show
         earliestDate = stocks 
-            <&> (days >>> head >>> raw >>> date >>> str) 
+            <&> (days >>> NE.head >>> raw >>> date >>> str) 
             & foldr1 min & prettifyDate
         latestDate = stocks 
-            <&> (days >>> last >>> raw >>> date >>> str)
+            <&> (days >>> NE.last >>> raw >>> date >>> str)
             & foldr1 max & prettifyDate
     in
-        if notNull stocksWithDays
+        if notNull stocks
         then
-            stocksLengthStr ++ " stocks from " ++ earliestDate ++ " to " ++ latestDate
+            lenStr ++ " stocks from " ++ earliestDate ++ " to " ++ latestDate
         else
             "0 stocks"
 
