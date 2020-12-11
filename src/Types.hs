@@ -36,6 +36,8 @@ data CLIState = CLIState {
 data Stock = Stock String (NE.NonEmpty Day)
     deriving (Eq, Show)
 
+-- Smart constructor for Stock.
+-- All dates must be unique and in ascending order.
 stock :: String -> NE.NonEmpty Day -> Maybe Stock
 stock symbol days = 
     let 
