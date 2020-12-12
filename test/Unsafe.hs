@@ -27,6 +27,11 @@ unsafeStock :: String -> [Day] -> Stock
 unsafeStock symbol days = 
     fromJust $ stock symbol (fromJust $ NE.nonEmpty $ days)
 
+-- Unsafe YYYYMMDD constructor. Allows tests to be more succinct.
+unsafeYMD :: String -> YYYYMMDD
+unsafeYMD s = fromJust $ ymd $ s
+
 -- Unsafely extracts first 2 elements into a tuple
 first2 :: [a] -> (a, a)
 first2 arr = (arr !! 0, arr !! 1)
+

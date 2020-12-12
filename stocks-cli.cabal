@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 26398180f034ecee4efe7e033c8f9da9f5de1f184fdd4a273cb6d0bf02c9a959
+-- hash: 81322c545b4acddf94877332704928a331c634cafdd505c16124d31f04f86627
 
 name:           stocks-cli
 version:        0.1.0.0
@@ -30,6 +30,7 @@ library
       CLI
       CLICommands
       Constants
+      EODHD
       Predundant
       Prettify
       SafeIO
@@ -86,6 +87,7 @@ test-suite stocks-cli-test
   main-is: Spec.hs
   other-modules:
       CLISpec
+      EODHDSpec
       Generators
       PrettifySpec
       StocksCompactJSONSpec

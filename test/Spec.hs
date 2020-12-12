@@ -6,6 +6,7 @@ import PrettifySpec (prettifyTests)
 import StocksCompactJSONSpec (stocksCompactJSONTests)
 import TypesSpec (typesTests)
 import ValidatedLiteralsSpec (validatedLiteralsTests)
+import EODHDSpec (eodhdTests)
 
 main :: IO ()
 main = hspec $ do
@@ -14,3 +15,4 @@ main = hspec $ do
     stocksCompactJSONTests
     typesTests
     validatedLiteralsTests
+    eodhdTests
