@@ -1,8 +1,18 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 -- Utility functions associated with https://eodhistoricaldata.com/
 module EODHD where
 
 import Data.Function ((&))
+import Data.Text (Text, unpack)
+import Data.ByteString.Lazy (ByteString)
+import Data.Aeson (decode, Value (..))
+import Data.Aeson.Lens
+import Control.Lens
+import Data.Vector (toList)
+import Control.Monad
 
+import Predundant
 import Types
 
 -- Builds the URL where all the traded symbols on the specified day can be found.
@@ -29,3 +39,17 @@ daysURL apiKey year symbol =
         ++ "&fmt=json&from="
         ++ year
         ++ "-01-01"
+
+-- Parses the JSON from the URL built by EODHD.symbolsURL.
+parseSymbols :: ByteString -> Maybe [String]
+parseSymbols text = text
+    -- Still looking for an entirely-lens way to do this.
+    ^? _Array
+    <&> toList
+    <<&>> (^? key "code" . _String)
+    <&> allOrNothing
+    & join
+    <<&>> unpack
+
+parseDays :: ByteString -> Maybe [Day]
+parseDays text = undefined

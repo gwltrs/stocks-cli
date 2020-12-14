@@ -14,12 +14,13 @@ import Control.Lens.Getter ((^.))
 import System.Environment (lookupEnv)
 
 import Predundant
-import Types (CLICommand(..), CLIState(stocks))
+import Types
 import Prettify (prettifyCmd, prettifyStocks)
 import StocksCompactJSON (toStocksCompactJSON, parseStocksCompactJSON)
 import SafeIO (writeFileSafely, readFileSafely, prompt)
 import Constants (eodhdAPIKeyEnvVar)
 import ValidatedLiterals (ValidatedLiterals(..), validatedLiterals)
+import EODHD (symbolsURL)
 
 helpName :: [String]
 helpName = ["help"]
@@ -52,8 +53,13 @@ cliCommands = [
                     putStrLn ("Couldn't find environment variable: " ++ eodhdAPIKeyEnvVar)
                     pure s
                 Just apiKey -> do
-                    response <- get "https://cat-fact.herokuapp.com/facts"
-                    putStrLn (show response)
+                    date <- prompt "Get symbols from which date (YYYYMMDD): "
+                    case ymd date of
+                        Nothing -> do 
+                            putStrLn "Invalid date"
+                        Just validDate -> do
+                            response <- get (symbolsURL apiKey validDate)
+                            putStrLn (show response)
                     pure s) },
     CLICommand {
         name = ["data", "file", "save"],

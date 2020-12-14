@@ -33,6 +33,7 @@ dependencies:
 - wreq
 - lens
 - sort
+- lens-aeson
 
 library:
   source-dirs: src

@@ -34,4 +34,3 @@ unsafeYMD s = fromJust $ ymd $ s
 -- Unsafely extracts first 2 elements into a tuple
 first2 :: [a] -> (a, a)
 first2 arr = (arr !! 0, arr !! 1)
-
