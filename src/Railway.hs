@@ -53,6 +53,25 @@ infixl 1 >>=|
         Right r -> f r
 {-# INLINE (>>=|) #-}
 
+-- Performs a bind-like operation with a maybe-producing function.
+infixl 1 >>?|
+(>>?|) :: Monad m => Either e a -> ((a -> Maybe b), e) -> m (Either e b)
+(>>?|) ethr (f, err) = 
+    case ethr of
+        Left l -> pure $ Left $ l
+        Right r -> pure $ maybeToEither err $ f r
+{-# INLINE (>>?|) #-}
+
+-- Performs a bind-like operation with a maybe-producing function.
+infixl 1 >>>?|
+(>>>?|) :: Monad m => m (Either e a) -> ((a -> Maybe b), e) -> m (Either e b)
+(>>>?|) m (f, err) = do
+    ethr <- m
+    case ethr of
+        Left l -> pure $ Left $ l
+        Right r -> pure $ maybeToEither err $ f r
+{-# INLINE (>>>?|) #-}
+
 -- Continues the chain while ignoring the previous right value.
 -- The name of this operator is an allusion to the monadic >> operator.
 infixl 1 >>|
@@ -73,25 +92,6 @@ infixl 1 >>>|
         Left l -> pure $ Left $ l
         Right _ -> b
 {-# INLINE (>>>|) #-}
-
--- Performs a bind-like operation with a maybe-producing function.
-infixl 1 >>?|
-(>>?|) :: Monad m => Either e a -> ((a -> Maybe b), e) -> m (Either e b)
-(>>?|) ethr (f, err) = 
-    case ethr of
-        Left l -> pure $ Left $ l
-        Right r -> pure $ maybeToEither err $ f r
-{-# INLINE (>>?|) #-}
-
--- Performs a bind-like operation with a maybe-producing function.
-infixl 1 >>>?|
-(>>>?|) :: Monad m => m (Either e a) -> ((a -> Maybe b), e) -> m (Either e b)
-(>>>?|) m (f, err) = do
-    ethr <- m
-    case ethr of
-        Left l -> pure $ Left $ l
-        Right r -> pure $ maybeToEither err $ f r
-{-# INLINE (>>>?|) #-}
 
 -- Continues the chain while ignoring the previous right value.
 -- The name of this operator is an allusion to the monadic >> operator.
