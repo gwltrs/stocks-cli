@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5474e0b9297290fa9da10384c66baec33fdd920156f52aeaa8da5f0e8fced702
+-- hash: dc6bad228d86c9af79fcbb5483d958d2501678463db9030b47ec5ebbe568cb3a
 
 name:           stocks-cli
 version:        0.1.0.0
@@ -30,10 +30,11 @@ library
       CLI
       CLICommands
       Constants
+      CustomIO
       EODHD
       Predundant
       Prettify
-      SafeIO
+      Railway
       StocksCompactJSON
       TestStocks
       Types

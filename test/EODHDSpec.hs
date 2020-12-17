@@ -32,8 +32,11 @@ eodhdTests = do
             parseSymbols "[" `shouldBe` Nothing
             parseSymbols "[{\"codee\": \"A\"}]" `shouldBe` Nothing
             parseSymbols "[{\"code\": 123}]" `shouldBe` Nothing
+    describe "EODHD.parseDays" $ do
+        it "correctly parses valid JSON" $ do
+            parsesDays good2DaysJSON `shouldBe` Just good2Days
+            parsesDays good1DayJSON `shouldBe` Just good1Day
             
-
 -- Gathered from eodhistoricaldata.com/api/eod-bulk-last-day on 12/12/2020.
 goodSymbolsJSON :: ByteString
 goodSymbolsJSON  = 
@@ -83,3 +86,17 @@ goodSymbolsJSON  =
     \      \"volume\":0\
     \   }\
     \]"
+
+good1DayJSON :: ByteString
+good1DayJSON = 
+    ""
+
+good1Day :: [Day]
+good1Day = undefined
+
+good2DaysJSON :: ByteString
+good2DaysJSON = 
+    ""
+
+good2Days :: [Day]
+good2Days = undefined

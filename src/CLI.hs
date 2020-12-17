@@ -8,14 +8,14 @@ import Data.Foldable (fold, find)
 
 import Types (CLICommand(name, effect), CLIState(..))
 import CLICommands (helpName, cliCommands)
-import SafeIO (prompt)
+import qualified CustomIO as CIO
 
 -- Main entry point for the CLI
 runCLI :: IO ()
 runCLI =
     let
         initialState = CLIState { stocks = [] }
-        makeNewState state = prompt ">>> " >>= runLine state
+        makeNewState state = CIO.prompt ">>> " >>= runLine state
     in do
         putStrLn ("Technical Analysis CLI")
         putStrLn ("\"" ++ unwords helpName ++ "\" for list of commands")

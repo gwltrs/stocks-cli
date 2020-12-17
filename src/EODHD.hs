@@ -13,6 +13,7 @@ import Data.Vector (toList)
 import Control.Monad
 
 import Predundant
+import Railway
 import Types
 
 -- Builds the URL where all the traded symbols on the specified day can be found.

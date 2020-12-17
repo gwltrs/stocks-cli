@@ -2,12 +2,9 @@ module Predundant where
 
 import Data.Functor ((<&>))
 import Data.Maybe (mapMaybe)
+import Control.Category ((>>>))
 
--- Maps doubly-nested Functors.
-infixl 1 <<&>>
-(<<&>>) :: (Functor f, Functor g) => f (g a) -> (a -> b) -> f (g b)
-(<<&>>) a f = a <&> (<&> f)
-{-# INLINE (<<&>>) #-}
+
 
 -- Returns array if all elements are Just.
 -- Otherwise returns Nothing.
@@ -19,3 +16,4 @@ allOrNothing arr =
         if length filtered == length arr 
         then Just filtered
         else Nothing
+
