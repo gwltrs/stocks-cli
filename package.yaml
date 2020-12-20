@@ -34,6 +34,8 @@ dependencies:
 - lens
 - sort
 - lens-aeson
+- mtl
+- errors
 
 library:
   source-dirs: src

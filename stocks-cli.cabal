@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: dc6bad228d86c9af79fcbb5483d958d2501678463db9030b47ec5ebbe568cb3a
+-- hash: dfa85ee84364524256612774c068441da4aec1a3a83c5c7a0b02a888c97eaffb
 
 name:           stocks-cli
 version:        0.1.0.0
@@ -48,11 +48,13 @@ library
     , aeson
     , base >=4.7 && <5
     , bytestring
+    , errors
     , extra
     , ghc-lib-parser
     , hspec
     , lens
     , lens-aeson
+    , mtl
     , scientific
     , sort
     , text
@@ -72,11 +74,13 @@ executable stocks-cli-exe
     , aeson
     , base >=4.7 && <5
     , bytestring
+    , errors
     , extra
     , ghc-lib-parser
     , hspec
     , lens
     , lens-aeson
+    , mtl
     , scientific
     , sort
     , stocks-cli
@@ -106,11 +110,13 @@ test-suite stocks-cli-test
     , aeson
     , base >=4.7 && <5
     , bytestring
+    , errors
     , extra
     , ghc-lib-parser
     , hspec
     , lens
     , lens-aeson
+    , mtl
     , scientific
     , sort
     , stocks-cli

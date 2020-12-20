@@ -11,6 +11,8 @@ import Data.Typeable (typeOf)
 import Data.Maybe (fromMaybe)
 import Control.Lens.Getter ((^.))
 import Data.List (intercalate)
+import Control.Category ((>>>))
+import Control.Error.Util ((??))
 
 import Predundant
 import Types
@@ -20,7 +22,7 @@ import Prettify (prettifyCmd, prettifyStocks)
 import StocksCompactJSON (toStocksCompactJSON, parseStocksCompactJSON)
 import Constants (eodhdAPIKeyEnvVar)
 import ValidatedLiterals (ValidatedLiterals(..), validatedLiterals)
-import EODHD (symbolsURL, parseSymbols)
+import EODHD (symbolsURL, parseSymbols, daysURL, parseDays)
 
 helpName :: [String]
 helpName = ["help"]
@@ -46,32 +48,40 @@ cliCommands = [
     CLICommand { 
         name = ["data", "fetch", "eodhd"],
         description = "Fetches a stocks data set from",
-        effect = (\s -> do
+        effect = (\s -> CIO.printAndReturn s $ do
             apiKey <- CIO.lookupEnv eodhdAPIKeyEnvVar
-            date <- CIO.prompt "Get symbols from which date (YYYYMMDD): "
-                <&> ymd
-                ?^| "Invalid date"
-            symbols <- (symbolsURL <$> apiKey <*> date)
-                >>=| CIO.getBody
-                >>>?| (parseSymbols, "Couldn't parse symbols")
-            putStrLn $ either id show $ symbols
-            pure s )},
+            date <- CIO.promptSymbolsDate
+            year <- CIO.promptDaysStartingYear
+            putStrLn "Fetching symbols..." & CIO.liftM
+            symbols <- CIO.getBody (symbolsURL apiKey date)
+                >>= (\body -> parseSymbols body ?? "Couldn't parse symbols")
+            
+            testData <- CIO.getDays apiKey year (symbols !! 10211)
+            putStrLn testData >> pure s & CIO.liftM
+            --putStrLn ("Got " ++ (show $ length $ symbols) ++ " symbols")
+                -- >> pure s
+                -- & CIO.liftM
+            
+                )},
     CLICommand {
         name = ["data", "file", "save"],
         description = "Saves the currently-loaded stocks data set to a file",
-        effect = (\s ->
-            ifTrue ((s & stocks & length) == 0) "No data"
-                >>^| CIO.prompt "Path: "
-                >>>=| (flip CIO.writeFile) (s & stocks & toStocksCompactJSON)
-                >>>. (id, const "Done")
-                >>= putStrLn
-                >> pure s ) },
+        effect = (\s -> CIO.printAndReturn s $
+            if s & stocks & null
+            then CIO.returnError "No data"
+            else do
+                _ <- CIO.prompt "Path: "
+                    & CIO.liftM
+                    >>= (flip CIO.writeFile) (s & stocks & toStocksCompactJSON)
+                CIO.liftM (putStrLn "Done" >> pure s) ) },
     CLICommand { 
         name = ["data", "file", "load"],
         description = "Loads a stocks data set from a file", 
-        effect = (\s ->
-            (CIO.prompt "Path: " >>= CIO.readFile)
-                >>>?| (parseStocksCompactJSON, "Wrong format")
-                >>>=. (
-                    \err -> putStrLn err >> pure s,
-                    \stocks -> putStrLn "Done" >> pure s { stocks = stocks } ) ) } ]
+        effect = (\s -> CIO.printAndReturn s $ do
+            fileText <- CIO.prompt "Path: " 
+                & CIO.liftM 
+                >>= CIO.readFile
+            stocks <- parseStocksCompactJSON fileText ?? "Wrong format"
+            putStrLn "Done"
+                >> pure s { stocks = stocks }
+                & CIO.liftM ) } ]

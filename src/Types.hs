@@ -6,7 +6,7 @@ module Types (
     DayRaw(..), dayRaw,
     YYYYMMDD, ymd, str,
     NonNegativeInt, nonNegativeInt, int,
-    NonNegativeRealFloat, nonNegativeRealFloat, flt
+    NonNegativeRealDouble, nonNegativeRealDouble, dbl
 ) where
 
 import Test.QuickCheck
@@ -68,20 +68,20 @@ newtype Day = Day DayRaw
 -- (besides the invariants enforced by the properties).
 data DayRaw = DayRaw {
     date :: YYYYMMDD,
-    open :: NonNegativeRealFloat,
-    high :: NonNegativeRealFloat,
-    low :: NonNegativeRealFloat,
-    close :: NonNegativeRealFloat,
+    open :: NonNegativeRealDouble,
+    high :: NonNegativeRealDouble,
+    low :: NonNegativeRealDouble,
+    close :: NonNegativeRealDouble,
     volume :: NonNegativeInt
 } deriving (Eq, Show)
 
 -- Convenience constructor for DayRaw.
 dayRaw ::
     YYYYMMDD 
-    -> NonNegativeRealFloat 
-    -> NonNegativeRealFloat 
-    -> NonNegativeRealFloat 
-    -> NonNegativeRealFloat 
+    -> NonNegativeRealDouble 
+    -> NonNegativeRealDouble 
+    -> NonNegativeRealDouble 
+    -> NonNegativeRealDouble 
     -> NonNegativeInt
     -> DayRaw
 dayRaw d o h l c v = DayRaw {
@@ -97,9 +97,9 @@ raw (Day dr) = dr
 day :: DayRaw -> Maybe Day
 day dr = 
     let 
-        allFloats = [open dr, high dr, low dr, close dr] <&> flt
-        invalidLow = (flt $ low $ dr) > foldr1 min allFloats
-        invalidHigh = (flt $ high $ dr) < foldr1 max allFloats
+        allDoubles = [open dr, high dr, low dr, close dr] <&> dbl
+        invalidLow = (dbl $ low $ dr) > foldr1 min allDoubles
+        invalidHigh = (dbl $ high $ dr) < foldr1 max allDoubles
     in
         if invalidLow || invalidHigh then
             Nothing
@@ -153,17 +153,17 @@ nonNegativeInt i =
 int :: NonNegativeInt -> Int
 int (NonNegativeInt i) = i
 
-newtype NonNegativeRealFloat = NonNegativeRealFloat Float
+newtype NonNegativeRealDouble = NonNegativeRealDouble Double
     deriving (Eq, Show)
 
--- Smart constructor for NonNegativeRealFloat
-nonNegativeRealFloat :: Float -> Maybe NonNegativeRealFloat
-nonNegativeRealFloat f =
-    if isNaN f || isInfinite f || f < 0 then
+-- Smart constructor for NonNegativeRealDouble
+nonNegativeRealDouble :: Double -> Maybe NonNegativeRealDouble
+nonNegativeRealDouble d =
+    if isNaN d || isInfinite d || d < 0 then
         Nothing
     else 
-        Just $ NonNegativeRealFloat $ f
+        Just $ NonNegativeRealDouble $ d
 
--- Extracts Float from NonNegativeRealFloat.
-flt :: NonNegativeRealFloat -> Float
-flt (NonNegativeRealFloat f) = f
+-- Extracts Double from NonNegativeRealDouble.
+dbl :: NonNegativeRealDouble -> Double
+dbl (NonNegativeRealDouble d) = d

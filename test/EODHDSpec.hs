@@ -7,7 +7,7 @@ import Data.ByteString.Lazy (ByteString)
 
 import Types
 import Unsafe
-import EODHD (symbolsURL, daysURL, parseSymbols)
+import EODHD (symbolsURL, daysURL, parseSymbols, parseDays)
 
 eodhdTests :: SpecWith ()
 eodhdTests = do
@@ -28,14 +28,20 @@ eodhdTests = do
             parseSymbols goodSymbolsJSON `shouldBe` Just ["A", "AA", "AAA", "AAAAX"]
             parseSymbols "[]" `shouldBe` Just []
         it "rejects invalid JSON" $ do
+            -- TODO: implement Arbitrary ByteString instance
             parseSymbols "" `shouldBe` Nothing
             parseSymbols "[" `shouldBe` Nothing
             parseSymbols "[{\"codee\": \"A\"}]" `shouldBe` Nothing
             parseSymbols "[{\"code\": 123}]" `shouldBe` Nothing
     describe "EODHD.parseDays" $ do
         it "correctly parses valid JSON" $ do
-            parsesDays good2DaysJSON `shouldBe` Just good2Days
-            parsesDays good1DayJSON `shouldBe` Just good1Day
+            parseDays good2DaysJSON `shouldBe` Just good2Days
+            parseDays good1DayJSON `shouldBe` Just good1Day
+            parseDays "[]" `shouldBe` Just []
+        it "rejects invalid JSON" $ do
+            -- TODO: implement Arbitrary ByteString instance
+            parseDays "" `shouldBe` Nothing
+            parseDays "}" `shouldBe` Nothing
             
 -- Gathered from eodhistoricaldata.com/api/eod-bulk-last-day on 12/12/2020.
 goodSymbolsJSON :: ByteString
@@ -88,15 +94,47 @@ goodSymbolsJSON  =
     \]"
 
 good1DayJSON :: ByteString
-good1DayJSON = 
-    ""
+good1DayJSON =
+    "[\
+    \   {\
+    \      \"date\":\"1999-11-18\",\
+    \      \"open\":45.5,\
+    \      \"high\":49.75,\
+    \      \"low\":40,\
+    \      \"close\":44,\
+    \      \"adjusted_close\":27.25,\
+    \      \"volume\":44744700\
+    \   }\
+    \]"
 
 good1Day :: [Day]
-good1Day = undefined
+good1Day = [
+    unsafeDay "19991118" 45.5 49.75 40.0 44.0 44744700]
 
 good2DaysJSON :: ByteString
 good2DaysJSON = 
-    ""
+    "[\
+    \   {\
+    \      \"date\":\"2020-07-28\",\
+    \      \"open\":1.75,\
+    \      \"high\":2,\
+    \      \"low\":1,\
+    \      \"close\":1.25,\
+    \      \"adjusted_close\":11,\
+    \      \"volume\":333\
+    \   },\
+    \   {\
+    \      \"date\":\"2020-07-29\",\
+    \      \"open\":2.75,\
+    \      \"high\":3,\
+    \      \"low\":2,\
+    \      \"close\":2.5,\
+    \      \"adjusted_close\":55,\
+    \      \"volume\":4444\
+    \   }\
+    \]"
 
 good2Days :: [Day]
-good2Days = undefined
+good2Days = [
+    unsafeDay "20200728" 1.75 2 1 1.25 333,
+    unsafeDay "20200729" 2.75 3 2 2.5 4444]

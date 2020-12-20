@@ -58,7 +58,7 @@ badYYYYMMDDStr =
 -- Produces DayRaw values that should always be accepted by the Day smart constructor.
 goodDayRaw :: Gen DayRaw
 goodDayRaw = do
-    (low, high) <- choose (0, maxFloat) 
+    (low, high) <- choose (0, maxDouble) 
         & vectorOf 2 
         <&> (\l -> (foldr1 min l, foldr1 min l))
     open <- choose (0, 1) <&> shiftRange (0, 1) (low, high)
@@ -67,10 +67,10 @@ goodDayRaw = do
     volume <- choose (0, maxBound) <&> nonNegativeInt <&> fromJust
     pure DayRaw {
         date = date, 
-        open = fromJust $ nonNegativeRealFloat $ open, 
-        high = fromJust $ nonNegativeRealFloat $ high, 
-        low = fromJust $ nonNegativeRealFloat $ low, 
-        close = fromJust $ nonNegativeRealFloat $ close, 
+        open = fromJust $ nonNegativeRealDouble $ open, 
+        high = fromJust $ nonNegativeRealDouble $ high, 
+        low = fromJust $ nonNegativeRealDouble $ low, 
+        close = fromJust $ nonNegativeRealDouble $ close, 
         volume = volume }
 
 -- Produces values that should always be accepted by the Stock smart constructor.
@@ -105,9 +105,9 @@ badStockArgs = do
         & NE.fromList & pure
     pure (symbol, badDays)
 
--- Generates Float values that aren't real including NaN and +/- Infinity.
-nonRealFloat :: Gen Float
-nonRealFloat =
+-- Generates Double values that aren't real including NaN and +/- Infinity.
+nonRealDouble :: Gen Double
+nonRealDouble =
     oneof [
         pure $ read "Infinity",
         pure $ read "-Infinity",
@@ -127,17 +127,17 @@ leadZeros n str =
     let ys = take n str
     in replicate (n - length ys) '0' ++ ys
 
--- Approximate minimum value of IEEE single-precision float
-minFloat :: Float
-minFloat = -3.4 * 10 ** 38
+-- Approximate minimum value of IEEE double-precision floating-point number
+minDouble :: Double
+minDouble = -1.75 * 10 ** 308
 
--- Approximate maximum value of IEEE single-precision float
-maxFloat :: Float
-maxFloat = 3.4 * 10 ** 38
+-- Approximate minimum value of IEEE double-precision floating-point number
+maxDouble :: Double
+maxDouble = 1.75 * 10 ** 308
 
 -- Converts the given number from one range to another.
 -- Example: shiftRange (0, 1) (100, 200) 0.5 == 150.
-shiftRange :: (Float, Float) -> (Float, Float) -> Float -> Float
+shiftRange :: (Double, Double) -> (Double, Double) -> Double -> Double
 shiftRange (oldMin, oldMax) (newMin, newMax) oldValue = 
     -- Copied from https://stackoverflow.com/a/929107/4102858
     (((oldValue - oldMin) * (newMax - newMin)) / (oldMax - oldMin)) + newMin

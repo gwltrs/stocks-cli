@@ -30,15 +30,15 @@ typesTests = do
             property
                 $ forAll (choose (minBound, -1))
                 $ \i -> (i & nonNegativeInt <&> int) == Nothing
-    describe "Types.nonNegativeRealFloat" $ do
-        it "should create NonNegativeRealFloat when given valid float" $ do
+    describe "Types.nonNegativeRealDouble" $ do
+        it "should create NonNegativeRealDouble when given valid Double" $ do
             property
-                $ forAll (choose (0, maxFloat))
-                $ \f -> (f & nonNegativeRealFloat <&> flt) == Just f
-        it "should fail when given invalid float" $ do
+                $ forAll (choose (0, maxDouble))
+                $ \f -> (f & nonNegativeRealDouble <&> dbl) == Just f
+        it "should fail when given invalid Double" $ do
             property
-                $ forAll (oneof [choose (minFloat, -0.000000001), nonRealFloat]) 
-                $ \f -> (f & nonNegativeRealFloat <&> flt) == Nothing
+                $ forAll (oneof [choose (minDouble, -0.000000001), nonRealDouble]) 
+                $ \f -> (f & nonNegativeRealDouble <&> dbl) == Nothing
     describe "Types.day" $ do
         it "should create day when given valid inputs" $ do
             property

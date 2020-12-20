@@ -11,6 +11,7 @@ import Data.Aeson.Lens
 import Control.Lens
 import Data.Vector (toList)
 import Control.Monad
+import Data.Scientific (toBoundedInteger)
 
 import Predundant
 import Railway
@@ -53,4 +54,27 @@ parseSymbols text = text
     <<&>> unpack
 
 parseDays :: ByteString -> Maybe [Day]
-parseDays text = undefined
+parseDays text = 
+    let
+        parseDay :: Value -> Maybe Day
+        parseDay v = dayRaw
+            <$> (v ^? key "date" . _String <&> unpack >>= ymd)
+            <*> (v ^? key "open" . _Double >>= nonNegativeRealDouble)
+            <*> (v ^? key "high" . _Double >>= nonNegativeRealDouble)
+            <*> (v ^? key "low" . _Double >>= nonNegativeRealDouble)
+            <*> (v ^? key "close" . _Double >>= nonNegativeRealDouble)
+            <*> ((v ^? key "volume") >>= toInt >>= nonNegativeInt)
+            >>= day
+    in
+        text
+            ^? _Array
+            <&> toList
+            <<&>> parseDay
+            <&> allOrNothing
+            & join
+
+-- Tries to extract an Int from an Aeson.Value.
+toInt :: Value -> Maybe Int
+toInt val = case val of
+    Number s -> toBoundedInteger s
+    _ -> Nothing

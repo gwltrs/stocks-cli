@@ -7,19 +7,19 @@ import qualified Data.List.NonEmpty as NE (nonEmpty)
 import Types
 
 -- Unsafe Day constructor. Allows tests to be more succinct.
-unsafeDay :: String -> Float -> Float -> Float -> Float -> Int -> Day
+unsafeDay :: String -> Double -> Double -> Double -> Double -> Int -> Day
 unsafeDay d o h l c v = 
     fromJust $ day $ unsafeDayRaw d o h l c v
 
 -- Unsafe DayRaw constructor. Allows tests to be more succinct.
-unsafeDayRaw :: String -> Float -> Float -> Float -> Float -> Int -> DayRaw
+unsafeDayRaw :: String -> Double -> Double -> Double -> Double -> Int -> DayRaw
 unsafeDayRaw d o h l c v = 
     dayRaw
         (fromJust $ ymd $ d)
-        (fromJust $ nonNegativeRealFloat $ o)
-        (fromJust $ nonNegativeRealFloat $ h)
-        (fromJust $ nonNegativeRealFloat $ l)
-        (fromJust $ nonNegativeRealFloat $ c)
+        (fromJust $ nonNegativeRealDouble $ o)
+        (fromJust $ nonNegativeRealDouble $ h)
+        (fromJust $ nonNegativeRealDouble $ l)
+        (fromJust $ nonNegativeRealDouble $ c)
         (fromJust $ nonNegativeInt $ v)
 
 -- Unsafe Stock constructor. Allows tests to be more succinct.

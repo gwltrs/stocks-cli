@@ -14,6 +14,9 @@ import Data.Vector (Vector, mapMaybe, toList, (!?), length)
 import Data.Scientific (toBoundedInteger, toRealFloat)
 import Control.Monad (join)
 import qualified Data.List.NonEmpty as NE (nonEmpty, toList)
+import Data.Aeson.Lens
+import Control.Lens
+import Control.Lens.Getter ((^.))
 
 import Types
 
@@ -27,10 +30,10 @@ toStocksCompactJSON stocks =
             "[" <> (intercalate "," txts) <> "]"
         dayToTxtVals d = [
             d & raw & date & str & toJSONTxt, 
-            d & raw & open & flt & show & pack, 
-            d & raw & high & flt & show & pack, 
-            d & raw & low & flt & show & pack, 
-            d & raw & close & flt & show & pack,
+            d & raw & open & dbl & show & pack, 
+            d & raw & high & dbl & show & pack, 
+            d & raw & low & dbl & show & pack, 
+            d & raw & close & dbl & show & pack,
             d & raw & volume & int & show & pack]
         dayToJSON = dayToTxtVals >>> toJSONArray 
         stockToJSON s =
@@ -55,12 +58,6 @@ parseStocksCompactJSON txt =
 toString :: Value -> Maybe String
 toString val = case val of
     String txt -> Just (unpack txt)
-    _ -> Nothing
-
--- Tries to extract a Float from an Aeson.Value.
-toFloat :: Value -> Maybe Float
-toFloat val = case val of
-    Number s -> Just (toRealFloat s)
     _ -> Nothing
 
 -- Tries to extract an Int from an Aeson.Value.
@@ -93,18 +90,26 @@ toMappedVector f val = case val of
 -- Tries to extract a Day from an Aeson.Value. 
 toDay :: Value -> Maybe Day
 toDay val = 
-    let 
-        dayFromVec vec = 
-            dayRaw
-                <$> (vec & (!? 0) >>= toString >>= ymd)
-                <*> (vec & (!? 1) >>= toFloat >>= nonNegativeRealFloat)
-                <*> (vec & (!? 2) >>= toFloat >>= nonNegativeRealFloat)
-                <*> (vec & (!? 3) >>= toFloat >>= nonNegativeRealFloat)
-                <*> (vec & (!? 4) >>= toFloat >>= nonNegativeRealFloat)
-                <*> (vec & (!? 5) >>= toInt >>= nonNegativeInt)
-                >>= day
-    in
-        toVector val >>= dayFromVec
+    dayRaw
+        <$> (val ^? nth 0 . _String <&> unpack >>= ymd)
+        <*> (val ^? nth 1 . _Double >>= nonNegativeRealDouble)
+        <*> (val ^? nth 2 . _Double >>= nonNegativeRealDouble)
+        <*> (val ^? nth 3 . _Double >>= nonNegativeRealDouble)
+        <*> (val ^? nth 4 . _Double >>= nonNegativeRealDouble)
+        <*> (val ^? nth 5 >>= toInt >>= nonNegativeInt)
+        >>= day
+    -- let 
+    --     dayFromVec vec = 
+    --         dayRaw
+    --             <$> ((vec !? 0) >>= toString >>= ymd)
+    --             <*> ((vec !? 1) . _Double >>= nonNegativeRealDouble)
+    --             <*> ((vec !? 2) . _Double >>= nonNegativeRealDouble)
+    --             <*> ((vec !? 3) . _Double >>= nonNegativeRealDouble)
+    --             <*> ((vec !? 4) . _Double >>= nonNegativeRealDouble)
+    --             <*> ((vec !? 5) >>= toInt >>= nonNegativeInt)
+    --             >>= day
+    -- in
+    --     toVector val >>= dayFromVec
 
 -- Tries to extract a Stock from an Aeson.Value.
 toStock :: Value -> Maybe Stock
