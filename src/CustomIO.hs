@@ -20,6 +20,7 @@ import Data.Maybe (mapMaybe, catMaybes)
 import qualified Data.List.NonEmpty as NE (nonEmpty)
 import Control.Monad.Except (ExceptT(..), withExceptT, runExceptT)
 import Control.Error.Util (failWithM)
+import Control.Concurrent.Async (mapConcurrently)
 
 import Predundant
 import Railway
@@ -101,19 +102,23 @@ getDays apiKey year symbol =
         & getBody
         <&> show
 
--- Attempts to create a stock for each given symbol. Discards unvalid days/stocks.
+-- Attempts to fetch a stock for each given symbol. Discards unvalid days/stocks.
+-- Prints out each symbol as it is fetched.
 getStocks :: String -> String -> [String] -> IO [Stock]
 getStocks apiKey year symbols =
-    symbols
-        <&> (\s -> daysURL apiKey year s)
+    (take 5 symbols)
         & zip [0..]
-        <&> (\t -> do
-           threadDelay (daysFetchDelay * fst t)
-           t & snd & getBody <&> (\b -> (snd t, b)) & runExceptT)
+        <&> (\t ->
+            let url = daysURL apiKey year (snd t)
+            in do
+                threadDelay (daysFetchDelay * fst t)
+                putStrLn (snd t)
+                url & getBody <&> (\b -> (snd t, b)) & runExceptT)
         & sequenceA
         <&> rights
         <&> mapMaybe (\t -> t & snd & parseDays >>= NE.nonEmpty >>= (stock (fst t)))
 
+-- SysEnv.lookupEnv lifted into ExceptT with a human-readable error.
 lookupEnv :: String -> ExceptT String IO String
 lookupEnv envVar = SysEnv.lookupEnv envVar
     & failWithM ("Couldn't find environment variable: " ++ envVar)

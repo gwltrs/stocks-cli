@@ -13,6 +13,7 @@ import Control.Lens.Getter ((^.))
 import Data.List (intercalate)
 import Control.Category ((>>>))
 import Control.Error.Util ((??))
+import Data.Char (isAlpha)
 
 import Predundant
 import Types
@@ -55,14 +56,18 @@ cliCommands = [
             putStrLn "Fetching symbols..." & CIO.liftM
             symbols <- CIO.getBody (symbolsURL apiKey date)
                 >>= (\body -> parseSymbols body ?? "Couldn't parse symbols")
-            
-            testData <- CIO.getDays apiKey year (symbols !! 10211)
-            putStrLn testData >> pure s & CIO.liftM
-            --putStrLn ("Got " ++ (show $ length $ symbols) ++ " symbols")
-                -- >> pure s
-                -- & CIO.liftM
-            
-                )},
+                -- Only keeping symbols that are entirely alphabetic and are less 
+                -- than 5 characters in length. This eliminates symbols that 
+                -- can't be traded on mainstread platforms such as Robinhood.
+                <&> filter (not . any (not . isAlpha))
+                <&> filter ((<= 4) . length)
+            putStrLn ("Got " ++ (show $ length $ symbols) ++ " symbols")
+                & CIO.liftM
+            stocks <- CIO.getStocks apiKey year symbols
+                & CIO.liftM
+            putStrLn ("Got " ++ (show $ length $ stocks) ++ " stocks")
+                >> pure s { stocks = stocks }
+                & CIO.liftM )},
     CLICommand {
         name = ["data", "file", "save"],
         description = "Saves the currently-loaded stocks data set to a file",
