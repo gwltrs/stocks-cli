@@ -28,7 +28,7 @@ import Predundant
 import Railway
 import Types
 import EODHD
-import Constants (maxConcurrentStockFetches)
+import Constants (eodhdMaxConcurrentStockFetches)
 
 -- Converts an exception-throwing IO to one that now returns a Left 
 -- containing the description of the exception it would have thrown 
@@ -108,8 +108,8 @@ getDays apiKey year symbol =
 -- Prints out each symbol as it is fetched.
 getStocks :: String -> String -> [String] -> IO [Stock]
 getStocks apiKey year symbols =
-    zip [0..] (take 500 symbols)
-        & chunksOf maxConcurrentStockFetches
+    zip [0..] symbols
+        & chunksOf eodhdMaxConcurrentStockFetches
         <&> mapConcurrently (\t ->
             let url = daysURL apiKey year (snd t)
             in do

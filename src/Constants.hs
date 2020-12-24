@@ -4,9 +4,9 @@ module Constants where
 eodhdAPIKeyEnvVar :: String
 eodhdAPIKeyEnvVar = "EODHD_API_KEY"
 
--- Stocks are fetched in batches.
+-- Stocks from eodhistoricaldata.com are fetched in batches.
 -- This saves time but also prevents too-many-request errors.
 -- This constant determines the max number of stocks that 
 -- can be fetched at a time.
-maxConcurrentStockFetches :: Int
-maxConcurrentStockFetches = 8
+eodhdMaxConcurrentStockFetches :: Int
+eodhdMaxConcurrentStockFetches = 8
