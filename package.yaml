@@ -37,6 +37,7 @@ dependencies:
 - mtl
 - errors
 - async
+- split
 
 library:
   source-dirs: src

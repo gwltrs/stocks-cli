@@ -21,12 +21,14 @@ import qualified Data.List.NonEmpty as NE (nonEmpty)
 import Control.Monad.Except (ExceptT(..), withExceptT, runExceptT)
 import Control.Error.Util (failWithM)
 import Control.Concurrent.Async (mapConcurrently)
+import Data.List.Split (chunksOf)
+import Control.Monad (join)
 
 import Predundant
 import Railway
 import Types
 import EODHD
-import Constants (daysFetchDelay)
+import Constants (maxConcurrentStockFetches)
 
 -- Converts an exception-throwing IO to one that now returns a Left 
 -- containing the description of the exception it would have thrown 
@@ -106,15 +108,15 @@ getDays apiKey year symbol =
 -- Prints out each symbol as it is fetched.
 getStocks :: String -> String -> [String] -> IO [Stock]
 getStocks apiKey year symbols =
-    (take 5 symbols)
-        & zip [0..]
-        <&> (\t ->
+    zip [0..] (take 500 symbols)
+        & chunksOf maxConcurrentStockFetches
+        <&> mapConcurrently (\t ->
             let url = daysURL apiKey year (snd t)
             in do
-                threadDelay (daysFetchDelay * fst t)
                 putStrLn (snd t)
                 url & getBody <&> (\b -> (snd t, b)) & runExceptT)
         & sequenceA
+        <&> join
         <&> rights
         <&> mapMaybe (\t -> t & snd & parseDays >>= NE.nonEmpty >>= (stock (fst t)))
 

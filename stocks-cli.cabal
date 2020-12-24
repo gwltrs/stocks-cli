@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ec405036196b273f414af2ec2dc2c77472666776bfe79e64dfc6290757a84969
+-- hash: 2586fe1ffa995912b8eaf886f0fb64e51c716162384c195ee0c0a5ede8c334a6
 
 name:           stocks-cli
 version:        0.1.0.0
@@ -58,6 +58,7 @@ library
     , mtl
     , scientific
     , sort
+    , split
     , text
     , vector
     , wreq
@@ -85,6 +86,7 @@ executable stocks-cli-exe
     , mtl
     , scientific
     , sort
+    , split
     , stocks-cli
     , text
     , vector
@@ -122,6 +124,7 @@ test-suite stocks-cli-test
     , mtl
     , scientific
     , sort
+    , split
     , stocks-cli
     , text
     , vector

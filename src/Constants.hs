@@ -4,8 +4,9 @@ module Constants where
 eodhdAPIKeyEnvVar :: String
 eodhdAPIKeyEnvVar = "EODHD_API_KEY"
 
--- Amount of delay between each days fetch.
--- Helps prevent requests from reaching limit.
--- In milliseconds.
-daysFetchDelay :: Int
-daysFetchDelay = 100
+-- Stocks are fetched in batches.
+-- This saves time but also prevents too-many-request errors.
+-- This constant determines the max number of stocks that 
+-- can be fetched at a time.
+maxConcurrentStockFetches :: Int
+maxConcurrentStockFetches = 8
