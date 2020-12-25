@@ -5,6 +5,7 @@ import Data.Function ((&))
 import Data.Functor ((<&>))
 import Maybes (firstJusts, orElse)
 import Data.Foldable (fold, find)
+import qualified Data.Vector as V
 
 import Types (CLICommand(name, effect), CLIState(..))
 import CLICommands (helpName, cliCommands)
@@ -14,7 +15,7 @@ import qualified CustomIO as CIO
 runCLI :: IO ()
 runCLI =
     let
-        initialState = CLIState { stocks = [] }
+        initialState = CLIState { stocks = V.empty }
         makeNewState state = CIO.prompt ">>> " >>= runLine state
     in do
         putStrLn ("Technical Analysis CLI")

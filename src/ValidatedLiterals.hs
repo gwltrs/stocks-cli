@@ -4,13 +4,14 @@ module ValidatedLiterals where
 
 import Data.Maybe (fromJust)
 import Data.Function ((&))
+import qualified Data.Vector as V
 
 import Types (Stock)
 import TestStocks (testStocksCompactJSON)
 import StocksCompactJSON (parseStocksCompactJSON)
 
 data ValidatedLiterals = ValidatedLiterals {
-    testStocks :: [Stock]
+    testStocks :: V.Vector Stock
 } deriving (Eq, Show)
 
 validatedLiterals :: ValidatedLiterals

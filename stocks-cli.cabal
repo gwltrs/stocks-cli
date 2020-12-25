@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2586fe1ffa995912b8eaf886f0fb64e51c716162384c195ee0c0a5ede8c334a6
+-- hash: 43f525fd7046ed34dd3a95ac811cbba2fb37c3a9112a9221c5cb38cf93a749c9
 
 name:           stocks-cli
 version:        0.1.0.0
@@ -34,7 +34,6 @@ library
       EODHD
       Predundant
       Prettify
-      Railway
       StocksCompactJSON
       TestStocks
       Types
@@ -56,11 +55,13 @@ library
     , lens
     , lens-aeson
     , mtl
+    , nonempty-vector
     , scientific
     , sort
     , split
     , text
     , vector
+    , vector-split
     , wreq
   default-language: Haskell2010
 
@@ -84,12 +85,14 @@ executable stocks-cli-exe
     , lens
     , lens-aeson
     , mtl
+    , nonempty-vector
     , scientific
     , sort
     , split
     , stocks-cli
     , text
     , vector
+    , vector-split
     , wreq
   default-language: Haskell2010
 
@@ -122,11 +125,13 @@ test-suite stocks-cli-test
     , lens
     , lens-aeson
     , mtl
+    , nonempty-vector
     , scientific
     , sort
     , split
     , stocks-cli
     , text
     , vector
+    , vector-split
     , wreq
   default-language: Haskell2010

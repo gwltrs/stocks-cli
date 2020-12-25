@@ -15,7 +15,10 @@ import Data.Function ((&))
 import Data.Coerce (coerce)
 import Data.Maybe (isJust, fromMaybe)
 import Text.Read (readMaybe)
-import qualified Data.List.NonEmpty as NE (NonEmpty(..), toList)
+--import qualified Data.List.NonEmpty as NE (NonEmpty(..), toList)
+import qualified Data.Vector as V
+import qualified Data.Vector.NonEmpty as NEV
+import Data.Vector (Vector)
 import Control.Category ((>>>))
 
 data CLICommand = CLICommand {
@@ -30,24 +33,24 @@ data CLICommand = CLICommand {
 }
 
 data CLIState = CLIState {
-    stocks :: [Stock]
+    stocks :: Vector Stock
 }
 
-data Stock = Stock String (NE.NonEmpty Day)
+data Stock = Stock String (NEV.NonEmptyVector Day)
     deriving (Eq, Show)
 
 -- Smart constructor for Stock.
 -- All dates must be unique and in ascending order.
-stock :: String -> NE.NonEmpty Day -> Maybe Stock
+stock :: String -> NEV.NonEmptyVector Day -> Maybe Stock
 stock symbol days = 
     let 
-        leftDates = NE.toList days <&> (raw >>> date >>> str)
-        rightDates = tail leftDates
-        datesAreGood = zipWith (<) leftDates rightDates
+        leftDates = days <&> (raw >>> date >>> str)
+        rightDates = NEV.tail leftDates
+        datesAreGood = V.zipWith (<) (NEV.toVector leftDates) rightDates
             & foldr1 (&&)
     in 
         if (length days == 1) || datesAreGood
-        then Just (Stock symbol days)
+        then Just $! (Stock symbol days)
         else Nothing
 
 -- Gets the stock's symbol
@@ -55,7 +58,7 @@ symbol :: Stock -> String
 symbol (Stock s _) = s
 
 -- Gets the stock's days
-days :: Stock -> NE.NonEmpty Day
+days :: Stock -> NEV.NonEmptyVector Day
 days (Stock _ d) = d
 
 -- Newtype that enforces the following invariants:
@@ -104,7 +107,7 @@ day dr =
         if invalidLow || invalidHigh then
             Nothing
         else
-            Just $ Day $ dr
+            Just $! Day $ dr
 
 -- Newtype that enforces that YYYYMMDD date format invariant.
 newtype YYYYMMDD = YYYYMMDD String
@@ -131,7 +134,7 @@ ymd str =
         dValid = checkComponent 6 2 1 31 str
     in
         if (length str == 8) && yValid && mValid && dValid
-        then Just (YYYYMMDD str) 
+        then Just $! (YYYYMMDD str) 
         else Nothing
 
 -- Extracts String from YYYYMMDD.
@@ -146,7 +149,7 @@ newtype NonNegativeInt = NonNegativeInt Int
 nonNegativeInt :: Int -> Maybe NonNegativeInt
 nonNegativeInt i = 
     if i >= 0 
-    then Just $ NonNegativeInt $ i  
+    then Just $! NonNegativeInt $ i  
     else Nothing 
 
 -- Extracts Int from NonNegativeInt.
@@ -162,32 +165,32 @@ nonNegativeRealDouble d =
     if isNaN d || isInfinite d || d < 0 then
         Nothing
     else 
-        Just $ NonNegativeRealDouble $ d
+        Just $! NonNegativeRealDouble $ d
 
 -- Extracts Double from NonNegativeRealDouble.
 dbl :: NonNegativeRealDouble -> Double
 dbl (NonNegativeRealDouble d) = d
 
 -- Represents the parsed indicator script.
-data IndicatorLang =
-    Leaf String [Float] | -- name and args
-    Or (NE.NonEmpty IndicatorLang) | 
-    And (NE.NonEmpty IndicatorLang)
+-- data IndicatorLang =
+--     Leaf String [Float] | -- name and args
+--     Or (NE.NonEmpty IndicatorLang) | 
+--     And (NE.NonEmpty IndicatorLang)
 
--- Data used to create the indicator.
-data IndicatorDetails = IndicatorDetails {
-    -- Name of the indicator described in the indicator language.
-    indicatorName :: String,
-    -- The number of floating-point arguments required to create the indicator.
-    numArgs :: Int,
-    -- Creates the indicator with the supplied arguments.
-    create :: ([Float]) -> Indicator
-}
+-- -- Data used to create the indicator.
+-- data IndicatorDetails = IndicatorDetails {
+--     -- Name of the indicator described in the indicator language.
+--     indicatorName :: String,
+--     -- The number of floating-point arguments required to create the indicator.
+--     numArgs :: Int,
+--     -- Creates the indicator with the supplied arguments.
+--     create :: ([Float]) -> Indicator
+-- }
 
--- Actual indicator used to filter the stocks.
-data Indicator = Indicator {
-    -- The number of past days required by the indicator to filter a stock.
-    lookBehind :: Int,
-    -- Returns a bool that indicates if the stock is a valid pick.
-    filter :: [Day] -> Bool
-}
+-- -- Actual indicator used to filter the stocks.
+-- data Indicator = Indicator {
+--     -- The number of past days required by the indicator to filter a stock.
+--     lookBehind :: Int,
+--     -- Returns a bool that indicates if the stock is a valid pick.
+--     filter :: [Day] -> Bool
+-- }

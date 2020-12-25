@@ -38,6 +38,8 @@ dependencies:
 - errors
 - async
 - split
+- nonempty-vector
+- vector-split
 
 library:
   source-dirs: src

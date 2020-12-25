@@ -3,15 +3,16 @@ module Predundant where
 import Data.Functor ((<&>))
 import Data.Maybe (mapMaybe)
 import Control.Category ((>>>))
+import qualified Data.Vector as V
 
 -- Returns array if all elements are Just.
 -- Otherwise returns Nothing.
-allOrNothing :: [Maybe a] -> Maybe [a]
+allOrNothing :: V.Vector (Maybe a) -> Maybe (V.Vector a)
 allOrNothing arr =
     let 
-        filtered = mapMaybe id arr
+        filtered = V.mapMaybe id arr
     in 
-        if length filtered == length arr 
+        if V.length filtered == V.length arr 
         then Just filtered
         else Nothing
 

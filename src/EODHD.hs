@@ -10,12 +10,12 @@ import Data.Aeson (decode, Value (..))
 import Data.Aeson.Lens
 import Control.Lens
 import Data.Vector (toList)
-import Control.Monad
+import Control.Monad (join)
 import Data.Scientific (toBoundedInteger)
 import Data.Char (isDigit)
+import qualified Data.Vector as V
 
 import Predundant
-import Railway
 import Types
 
 -- Builds the URL where all the traded symbols on the specified day can be found.
@@ -44,17 +44,15 @@ daysURL apiKey year symbol =
         ++ "-01-01"
 
 -- Parses the JSON from the URL built by EODHD.symbolsURL.
-parseSymbols :: ByteString -> Maybe [String]
-parseSymbols text = text
-    -- Still looking for an entirely-lens way to do this.
+parseSymbols :: ByteString -> Maybe (V.Vector String)
+parseSymbols bStr = bStr
     ^? _Array
-    <&> toList
     <<&>> (^? key "code" . _String)
     <&> allOrNothing
     & join
     <<&>> unpack
 
-parseDays :: ByteString -> Maybe [Day]
+parseDays :: ByteString -> Maybe (V.Vector Day)
 parseDays text = 
     let
         parseDay :: Value -> Maybe Day
@@ -72,7 +70,6 @@ parseDays text =
     in
         text
             ^? _Array
-            <&> toList
             <<&>> parseDay
             <&> allOrNothing
             & join

@@ -2,7 +2,6 @@
 
 module StocksCompactJSON (toStocksCompactJSON, parseStocksCompactJSON) where
 
-import Prelude hiding (length)
 import Data.Function ((&))
 import Data.Functor ((<&>))
 import Control.Category ((>>>))
@@ -10,54 +9,60 @@ import Data.Aeson (decode, encode, Value (..))
 import Data.Text (Text, pack, unpack, intercalate)
 import Data.ByteString.Lazy (ByteString, fromStrict, toStrict)
 import Data.Text.Encoding (encodeUtf8, decodeUtf8)
-import Data.Vector (Vector, mapMaybe, toList, (!?), length)
 import Data.Scientific (toBoundedInteger, toRealFloat)
 import Control.Monad (join)
-import qualified Data.List.NonEmpty as NE (nonEmpty, toList)
 import Data.Aeson.Lens
 import Control.Lens
 import Control.Lens.Getter ((^.))
+import qualified Data.Vector as V
+import qualified Data.Vector.NonEmpty as NEV
 
 import Types
 
 -- Converts stocks to JSON format where records are
 -- saved as ordered arrays instead of objects.
-toStocksCompactJSON :: [Stock] -> Text
+toStocksCompactJSON :: V.Vector Stock -> Text
 toStocksCompactJSON stocks =
     let
+        toJSONTxt :: String -> Text
         toJSONTxt = pack >>> encode >>> toStrict >>> decodeUtf8
+        toJSONArray :: V.Vector Text -> Text
         toJSONArray txts = 
-            "[" <> (intercalate "," txts) <> "]"
-        dayToTxtVals d = [
+            "[" 
+                <> foldl1 (\a b -> a <> "," <> b) txts
+                <> "]"
+        dayToTxtVals :: Day -> V.Vector Text
+        dayToTxtVals d = V.fromList [
             d & raw & date & str & toJSONTxt, 
             d & raw & open & dbl & show & pack, 
             d & raw & high & dbl & show & pack, 
             d & raw & low & dbl & show & pack, 
             d & raw & close & dbl & show & pack,
             d & raw & volume & int & show & pack]
+        dayToJSON :: Day -> Text
         dayToJSON = dayToTxtVals >>> toJSONArray 
+        stockToJSON :: Stock -> Text 
         stockToJSON s =
-            toJSONArray [
+            toJSONArray $ V.fromList [
                 s & symbol & toJSONTxt, 
-                days s & NE.toList <&> dayToJSON & toJSONArray]
+                days s <&> dayToJSON & NEV.toVector & toJSONArray]
     in
         stocks <&> stockToJSON & toJSONArray
 
 -- Parses stocks from JSON format where records are
 -- saved as ordered arrays instead of objects.
-parseStocksCompactJSON :: Text -> Maybe [Stock]
+parseStocksCompactJSON :: Text -> Maybe (V.Vector Stock)
 parseStocksCompactJSON txt =
     txt 
         & encodeUtf8 
         & fromStrict 
         & (decode :: ByteString -> Maybe Value) 
         >>= toMappedVector toStock 
-        <&> toList
 
 -- Tries to extract a String from an Aeson.Value.
 toString :: Value -> Maybe String
 toString val = case val of
-    String txt -> Just (unpack txt)
+    String txt -> Just $! (unpack txt)
     _ -> Nothing
 
 -- Tries to extract an Int from an Aeson.Value.
@@ -67,22 +72,22 @@ toInt val = case val of
     _ -> Nothing
 
 -- Tries to extract a Vector from an Aeson.Value.
-toVector :: Value -> Maybe (Vector Value)
+toVector :: Value -> Maybe (V.Vector Value)
 toVector val =
     case val of
-        Array vec -> Just vec
+        Array vec -> Just $! vec
         _ -> Nothing
 
 -- Tries to extract a Vector and its elements from an Aeson.Value.
 -- Returns Nothing if at least one element fails to convert.
-toMappedVector :: (Value -> Maybe a) -> Value -> Maybe (Vector a)
+toMappedVector :: (Value -> Maybe a) -> Value -> Maybe (V.Vector a)
 toMappedVector f val = case val of
     Array vec -> 
         let 
-            mappedVec = mapMaybe f vec
+            mappedVec = V.mapMaybe f vec
         in
-            if (length mappedVec) == (length vec) 
-            then Just mappedVec
+            if (V.length mappedVec) == (V.length vec) 
+            then Just $! mappedVec
             else Nothing
     _ ->
         Nothing
@@ -117,8 +122,8 @@ toStock val =
     let 
         stockFromVec vec = 
             stock 
-                <$> (vec & (!? 0) >>= toString)
-                <*> (vec & (!? 1) >>= toMappedVector toDay <&> toList >>= NE.nonEmpty)
+                <$> (vec & (V.!? 0) >>= toString)
+                <*> (vec & (V.!? 1) >>= toMappedVector toDay >>= NEV.fromVector)
                 & join
     in 
         toVector val >>= stockFromVec

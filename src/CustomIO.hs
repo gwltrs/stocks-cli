@@ -17,15 +17,16 @@ import qualified System.Environment as SysEnv (lookupEnv)
 import Control.Concurrent (threadDelay)
 import Data.Either (rights)
 import Data.Maybe (mapMaybe, catMaybes)
-import qualified Data.List.NonEmpty as NE (nonEmpty)
 import Control.Monad.Except (ExceptT(..), withExceptT, runExceptT)
 import Control.Error.Util (failWithM)
 import Control.Concurrent.Async (mapConcurrently)
-import Data.List.Split (chunksOf)
 import Control.Monad (join)
+import qualified Data.Vector as V
+import qualified Data.Vector.NonEmpty as NEV
+import Data.Vector.Split (chunksOf)
+import Data.Either.Extra (eitherToMaybe)
 
 import Predundant
-import Railway
 import Types
 import EODHD
 import Constants (eodhdMaxConcurrentStockFetches)
@@ -36,7 +37,7 @@ import Constants (eodhdMaxConcurrentStockFetches)
 catchIntoExceptT :: IO a -> ExceptT String IO a
 catchIntoExceptT unsafeIO = unsafeIO
     <&> Right
-    & handle (\e -> (e :: SomeException) & displayException & Left & pure)
+    & handle (\e -> pure $! Left $! displayException $ (e :: SomeException))
     & ExceptT
 
 printAndReturn :: a -> ExceptT String IO a -> IO a
@@ -47,13 +48,13 @@ printAndReturn errValue exceptt =
 
 returnError :: String -> ExceptT String IO a
 returnError errStr =
-    ExceptT $ pure $ Left $ errStr
+    ExceptT $! pure $! Left $! errStr
 
 returnSuccess :: Monad m => a -> ExceptT e m a
-returnSuccess = Right >>> pure >>> ExceptT
+returnSuccess s = ExceptT $! pure $! Right $! s
 
 liftM :: Monad m => m a -> ExceptT e m a
-liftM m = m <&> Right & ExceptT
+liftM m = ExceptT $! (m <&> Right)
 
 -- Safe version of Data.Text.IO that produces
 -- an error string inside a Just value instead
@@ -106,10 +107,11 @@ getDays apiKey year symbol =
 
 -- Attempts to fetch a stock for each given symbol. Discards unvalid days/stocks.
 -- Prints out each symbol as it is fetched.
-getStocks :: String -> String -> [String] -> IO [Stock]
+getStocks :: String -> String -> V.Vector String -> IO (V.Vector Stock)
 getStocks apiKey year symbols =
-    zip [0..] symbols
+    V.indexed symbols
         & chunksOf eodhdMaxConcurrentStockFetches
+        & V.fromList
         <&> mapConcurrently (\t ->
             let url = daysURL apiKey year (snd t)
             in do
@@ -117,8 +119,8 @@ getStocks apiKey year symbols =
                 url & getBody <&> (\b -> (snd t, b)) & runExceptT)
         & sequenceA
         <&> join
-        <&> rights
-        <&> mapMaybe (\t -> t & snd & parseDays >>= NE.nonEmpty >>= (stock (fst t)))
+        <&> V.mapMaybe eitherToMaybe
+        <&> V.mapMaybe (\t -> t & snd & parseDays >>= NEV.fromVector >>= (stock (fst t)))
 
 -- SysEnv.lookupEnv lifted into ExceptT with a human-readable error.
 lookupEnv :: String -> ExceptT String IO String

@@ -14,10 +14,11 @@ import Data.List (intercalate)
 import Control.Category ((>>>))
 import Control.Error.Util ((??))
 import Data.Char (isAlpha)
+import qualified Data.Vector as V
+import qualified Data.Vector.NonEmpty as NEV
 
 import Predundant
 import Types
-import Railway
 import qualified CustomIO as CIO
 import Prettify (prettifyCmd, prettifyStocks)
 import StocksCompactJSON (toStocksCompactJSON, parseStocksCompactJSON)
@@ -59,8 +60,8 @@ cliCommands = [
                 -- Only keeping symbols that are entirely alphabetic and are less 
                 -- than 5 characters in length. This eliminates symbols that 
                 -- can't be traded on mainstread platforms such as Robinhood.
-                <&> filter (not . any (not . isAlpha))
-                <&> filter ((<= 4) . length)
+                <&> V.filter (not . any (not . isAlpha))
+                <&> V.filter ((<= 4) . length)
             putStrLn ("Got " ++ (show $ length $ symbols) ++ " symbols")
                 & CIO.liftM
             stocks <- CIO.getStocks apiKey year symbols

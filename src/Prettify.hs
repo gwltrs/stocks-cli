@@ -5,7 +5,8 @@ import Data.List.Extra (notNull)
 import Data.Functor ((<&>))
 import Data.Foldable (foldr1)
 import Control.Category ((>>>))
-import qualified Data.List.NonEmpty as NE (head, last)
+import qualified Data.Vector as V
+import qualified Data.Vector.NonEmpty as NEV
 
 import Types
 
@@ -14,18 +15,18 @@ prettifyCmd :: CLICommand -> String
 prettifyCmd cmd = "\"" ++ (cmd & name & unwords) ++ "\": " ++ description cmd
 
 -- User-visible description of the stocks.
-prettifyStocks :: [Stock] -> String
+prettifyStocks :: V.Vector Stock -> String
 prettifyStocks stocks =
     let
         lenStr = stocks & length & show
         earliestDate = stocks 
-            <&> (days >>> NE.head >>> raw >>> date >>> str) 
+            <&> (days >>> NEV.head >>> raw >>> date >>> str) 
             & foldr1 min & prettifyDate
         latestDate = stocks 
-            <&> (days >>> NE.last >>> raw >>> date >>> str)
+            <&> (days >>> NEV.last >>> raw >>> date >>> str)
             & foldr1 max & prettifyDate
     in
-        if notNull stocks
+        if not $ V.null $ stocks
         then
             lenStr ++ " stocks from " ++ earliestDate ++ " to " ++ latestDate
         else
