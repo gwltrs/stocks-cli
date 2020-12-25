@@ -167,3 +167,27 @@ nonNegativeRealDouble d =
 -- Extracts Double from NonNegativeRealDouble.
 dbl :: NonNegativeRealDouble -> Double
 dbl (NonNegativeRealDouble d) = d
+
+-- Represents the parsed indicator script.
+data IndicatorLang =
+    Leaf String [Float] | -- name and args
+    Or (NE.NonEmpty IndicatorLang) | 
+    And (NE.NonEmpty IndicatorLang)
+
+-- Data used to create the indicator.
+data IndicatorDetails = IndicatorDetails {
+    -- Name of the indicator described in the indicator language.
+    indicatorName :: String,
+    -- The number of floating-point arguments required to create the indicator.
+    numArgs :: Int,
+    -- Creates the indicator with the supplied arguments.
+    create :: ([Float]) -> Indicator
+}
+
+-- Actual indicator used to filter the stocks.
+data Indicator = Indicator {
+    -- The number of past days required by the indicator to filter a stock.
+    lookBehind :: Int,
+    -- Returns a bool that indicates if the stock is a valid pick.
+    filter :: [Day] -> Bool
+}
