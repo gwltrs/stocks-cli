@@ -4,6 +4,7 @@ module EODHDSpec where
 import Test.Hspec
 import Test.QuickCheck
 import Data.ByteString.Lazy (ByteString)
+import qualified Data.Vector as V
 
 import Types
 import Unsafe
@@ -25,8 +26,8 @@ eodhdTests = do
                 "https://eodhistoricaldata.com/api/eod/F.US?api_token=SECRET&fmt=json&from=2020-01-01"
     describe "EODHD.parseSymbols" $ do
         it "correctly parses valid JSON" $ do
-            parseSymbols goodSymbolsJSON `shouldBe` Just ["A", "AA", "AAA", "AAAAX"]
-            parseSymbols "[]" `shouldBe` Just []
+            parseSymbols goodSymbolsJSON `shouldBe` (Just $ V.fromList $ ["A", "AA", "AAA", "AAAAX"])
+            parseSymbols "[]" `shouldBe` Just V.empty
         it "rejects invalid JSON" $ do
             -- TODO: implement Arbitrary ByteString instance
             parseSymbols "" `shouldBe` Nothing
@@ -35,9 +36,9 @@ eodhdTests = do
             parseSymbols "[{\"code\": 123}]" `shouldBe` Nothing
     describe "EODHD.parseDays" $ do
         it "correctly parses valid JSON" $ do
-            parseDays good2DaysJSON `shouldBe` Just good2Days
-            parseDays good1DayJSON `shouldBe` Just good1Day
-            parseDays "[]" `shouldBe` Just []
+            parseDays good2DaysJSON `shouldBe` (Just $ V.fromList $ good2Days)
+            parseDays good1DayJSON `shouldBe` (Just $ V.fromList $ good1Day)
+            parseDays "[]" `shouldBe` Just V.empty
         it "rejects invalid JSON" $ do
             -- TODO: implement Arbitrary ByteString instance
             parseDays "" `shouldBe` Nothing

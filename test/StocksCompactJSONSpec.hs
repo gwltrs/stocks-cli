@@ -7,6 +7,8 @@ import Test.Hspec
 import Test.QuickCheck
 import Data.Text (Text, pack)
 import Data.Maybe (fromJust)
+import qualified Data.Vector as V
+import qualified Data.Vector.NonEmpty as NEV
 
 import Types
 import StocksCompactJSON (toStocksCompactJSON, parseStocksCompactJSON)
@@ -17,7 +19,7 @@ stocksCompactJSONTests :: SpecWith ()
 stocksCompactJSONTests = do
     describe "StocksCompactJSON" $ do
         it "doesn't change round-tripped stocks" $  do
-            property $ \s -> parseStocksCompactJSON (toStocksCompactJSON s) == Just s
+            property $ \s -> parseStocksCompactJSON (toStocksCompactJSON (V.fromList s)) == (Just $ V.fromList $ s)
     describe "StocksCompactJSON.parseStocksCompactJSON" $ do
         it "parses stocks from compact JSON" $ do
             (parseStocksCompactJSON appleCompactJSON) `shouldBe` (Just appleStock)
@@ -28,8 +30,8 @@ stocksCompactJSONTests = do
         it "serializes stocks into compact JSON" $ do
             (toStocksCompactJSON appleStock) `shouldBe` appleCompactJSON
 
-appleStock :: [Stock]
-appleStock = [
+appleStock :: V.Vector Stock
+appleStock = V.fromList [
     unsafeStock
         "AAPL"
         [

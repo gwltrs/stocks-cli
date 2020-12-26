@@ -8,7 +8,8 @@ import Text.Read (readMaybe)
 import Data.Maybe (isNothing, fromJust)
 import Control.Category ((>>>))
 import Data.Foldable (foldr1)
-import qualified Data.List.NonEmpty as NE (NonEmpty, fromList)
+import qualified Data.Vector as V
+import qualified Data.Vector.NonEmpty as NEV
 import Data.Sort (sortOn, uniqueSortOn)
 
 import Predundant
@@ -74,17 +75,17 @@ goodDayRaw = do
         volume = volume }
 
 -- Produces values that should always be accepted by the Stock smart constructor.
-goodStockArgs :: Gen (String, NE.NonEmpty Day)
+goodStockArgs :: Gen (String, NEV.NonEmptyVector Day)
 goodStockArgs = do
     symbol <- arbitrary
     days <- listOf1 goodDayRaw
         <&> uniqueSortOn date
         <<&>> (day >>> fromJust)
-        <&> NE.fromList
+        <&> (NEV.fromList >>> fromJust)
     pure (symbol, days)
 
 -- Produces values that should never be accepted by the Stock smart constructor.
-badStockArgs :: Gen (String, NE.NonEmpty Day)
+badStockArgs :: Gen (String, NEV.NonEmptyVector Day)
 badStockArgs = do
     symbol <- arbitrary
     -- Has at least 2 elements and possibly has duplicate dates
@@ -102,7 +103,7 @@ badStockArgs = do
         & sortOn date
         & swap i0 i1
         <&> (day >>> fromJust)
-        & NE.fromList & pure
+        & NEV.fromList & fromJust & pure
     pure (symbol, badDays)
 
 -- Generates Double values that aren't real including NaN and +/- Infinity.
@@ -120,6 +121,11 @@ instance Arbitrary Stock where
 
 instance Arbitrary Day where
     arbitrary = goodDayRaw <&> (day >>> fromJust)
+
+-- instance Arbitrary (V.Vector Day) where
+--     arbitrary = do
+--         list <- arbitrary
+--         V.fromList list
 
 -- Adds up to leadings zeros to the string.
 leadZeros :: Int -> String -> String

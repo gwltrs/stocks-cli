@@ -21,3 +21,9 @@ infixl 1 <<&>>
 (<<&>>) :: (Functor f, Functor g) => f (g a) -> (a -> b) -> f (g b)
 (<<&>>) f map = f <&> (<&> map)
 {-# INLINE (<<&>>) #-}
+
+-- Returns a bool indicating if the value is between the range, inclusive.
+-- Behavior is undefined for max < min.
+between :: Ord a => (a, a) -> a -> Bool
+between (min, max) value =
+    min <= value && value <= max

@@ -20,6 +20,8 @@ import qualified Data.Vector as V
 import qualified Data.Vector.NonEmpty as NEV
 import Data.Vector (Vector)
 import Control.Category ((>>>))
+import Data.Char (isDigit)
+import Predundant
 
 data CLICommand = CLICommand {
     -- Whitespace-delimited text the user enters to executed the command
@@ -71,11 +73,11 @@ newtype Day = Day DayRaw
 -- (besides the invariants enforced by the properties).
 data DayRaw = DayRaw {
     date :: YYYYMMDD,
-    open :: NonNegativeRealDouble,
-    high :: NonNegativeRealDouble,
-    low :: NonNegativeRealDouble,
-    close :: NonNegativeRealDouble,
-    volume :: NonNegativeInt
+    open :: {-# UNPACK #-} !NonNegativeRealDouble,
+    high :: {-# UNPACK #-} !NonNegativeRealDouble,
+    low :: {-# UNPACK #-} !NonNegativeRealDouble,
+    close :: {-# UNPACK #-} !NonNegativeRealDouble,
+    volume :: {-# UNPACK #-} !NonNegativeInt
 } deriving (Eq, Show)
 
 -- Convenience constructor for DayRaw.
@@ -121,19 +123,33 @@ newtype YYYYMMDD = YYYYMMDD String
 ymd :: String -> Maybe YYYYMMDD
 ymd str = 
     let
-        parseInt s = readMaybe s :: Maybe Int 
-        between mn mx a = (mn <= a) && (a <= mx)
-        checkComponent drp tk mn mx str = str 
-            & drop drp 
-            & take tk 
-            & parseInt 
-            <&> between mn mx 
-            & fromMaybe False
-        yValid = checkComponent 0 4 0 9999 str
-        mValid = checkComponent 4 2 1 12 str
-        dValid = checkComponent 6 2 1 31 str
+
+
+        -- parseInt s = readMaybe s :: Maybe Int
+        -- between mn mx a = (mn <= a) && (a <= mx)
+        -- checkComponent drp tk mn mx str = str
+        --     & drop drp 
+        --     & take tk 
+        --     & parseInt 
+        --     <&> between mn mx 
+        --     & fromMaybe False
+
+
+        yyyy = str & take 4
+        mmdd = str & drop 4 & take 4
+        m1 = mmdd !! 0
+        m2 = mmdd !! 1
+        d1 = mmdd !! 2
+        d2 = mmdd !! 3
+
+
+        yValid = not $ any (not . isDigit) $ yyyy
+        mValid = m1 == '0' || (m1 == '1' && between ('0', '2') m2)
+        dValid = between ('0', '2') d1 || (d1 == '3' && between ('0', '1') d2)
+        
+        
     in
-        if (length str == 8) && yValid && mValid && dValid
+        if (length str == 8) && mValid && dValid && yValid
         then Just $! (YYYYMMDD str) 
         else Nothing
 
@@ -149,7 +165,7 @@ newtype NonNegativeInt = NonNegativeInt Int
 nonNegativeInt :: Int -> Maybe NonNegativeInt
 nonNegativeInt i = 
     if i >= 0 
-    then Just $! NonNegativeInt $ i  
+    then Just $! NonNegativeInt $! i  
     else Nothing 
 
 -- Extracts Int from NonNegativeInt.

@@ -109,7 +109,7 @@ getDays apiKey year symbol =
 -- Prints out each symbol as it is fetched.
 getStocks :: String -> String -> V.Vector String -> IO (V.Vector Stock)
 getStocks apiKey year symbols =
-    V.indexed symbols
+    V.indexed (V.take 100 symbols)
         & chunksOf eodhdMaxConcurrentStockFetches
         & V.fromList
         <&> mapConcurrently (\t ->

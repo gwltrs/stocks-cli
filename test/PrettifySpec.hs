@@ -6,6 +6,7 @@ import Data.Function ((&))
 import Types
 import Prettify (prettifyCmd, prettifyStocks, prettifyDate)
 import ValidatedLiterals (ValidatedLiterals(..), validatedLiterals)
+import qualified Data.Vector as V
 
 prettifyTests :: SpecWith ()
 prettifyTests = do
@@ -15,7 +16,7 @@ prettifyTests = do
             prettifyCmd downloadCmd `shouldBe` "\"download\": Gets data from the server"
     describe "Prettify.prettifyStocks" $ do
         it "shows 0 stocks" $ do
-            prettifyStocks [] `shouldBe` "0 stocks"
+            prettifyStocks V.empty `shouldBe` "0 stocks"
         it "shows 2 stocks" $ do
             prettifyStocks (validatedLiterals & testStocks) `shouldBe` "2 stocks from 1/2/2019 to 10/1/2020"
     describe "Prettify.prettifyDate" $ do

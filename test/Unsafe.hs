@@ -2,7 +2,8 @@
 module Unsafe where
 
 import Data.Maybe (fromJust)
-import qualified Data.List.NonEmpty as NE (nonEmpty)
+import qualified Data.Vector as V
+import qualified Data.Vector.NonEmpty as NEV
 
 import Types
 
@@ -25,11 +26,15 @@ unsafeDayRaw d o h l c v =
 -- Unsafe Stock constructor. Allows tests to be more succinct.
 unsafeStock :: String -> [Day] -> Stock
 unsafeStock symbol days = 
-    fromJust $ stock symbol (fromJust $ NE.nonEmpty $ days)
+    fromJust $ stock symbol (NEV.unsafeFromList $ days)
 
 -- Unsafe YYYYMMDD constructor. Allows tests to be more succinct.
 unsafeYMD :: String -> YYYYMMDD
 unsafeYMD s = fromJust $ ymd $ s
+
+unsafeNonEmptyVector :: [a] -> NEV.NonEmptyVector a
+unsafeNonEmptyVector list = 
+    fromJust $ NEV.fromList $ list
 
 -- Unsafely extracts first 2 elements into a tuple
 first2 :: [a] -> (a, a)
