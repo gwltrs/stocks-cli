@@ -77,7 +77,7 @@ goodDayRaw = do
 -- Produces values that should always be accepted by the Stock smart constructor.
 goodStockArgs :: Gen (String, NEV.NonEmptyVector Day)
 goodStockArgs = do
-    symbol <- arbitrary
+    symbol <- listOf $ oneof [choose ('A', 'Z'), pure '^', pure '.', pure '-']
     days <- listOf1 goodDayRaw
         <&> uniqueSortOn date
         <<&>> (day >>> fromJust)

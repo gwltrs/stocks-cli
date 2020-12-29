@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module StocksCompactCSV (toStocksCompactCSV, parseStocksCompactCSV) where
+module StocksCompactCSV where
 
 import Data.Function ((&))
 import Data.Functor ((<&>))
@@ -17,8 +17,9 @@ import Control.Lens.Getter ((^.))
 import qualified Data.Vector as V
 import qualified Data.Vector.NonEmpty as NEV
 import Text.Read (readMaybe)
-import Data.Either (isRight)
-import Data.Either.Combinators (leftToMaybe)
+import Data.Either (isLeft, isRight, fromLeft, fromRight)
+import Data.Either.Combinators (leftToMaybe, fromLeft', fromRight')
+import Data.Maybe (fromJust)
 
 import Predundant
 import Types
@@ -43,128 +44,58 @@ toStocksCompactCSV stocks =
     in
         stocks <&> stockCSV &! V.toList &! intercalate "\n"
 
+-- Splits compact CSV into tokens.
+-- Exporting this enables granular debugging.
+tokenizeStocksCompactCSV :: Text -> V.Vector (V.Vector Text)
+tokenizeStocksCompactCSV txt = txt
+    & splitOn "\n"
+    &! V.fromList
+    <&> (V.fromList . splitOn ",")
+
+-- Converts tokens into useable types.
+-- Exporting this enables granular debugging.
+interpretStocksTokens :: V.Vector (V.Vector Text) -> Maybe (V.Vector (Either Text Day))
+interpretStocksTokens tokens = tokens
+    <&> (\line -> 
+        if V.length line == 1
+        then 
+            Just $! Left $! (line V.! 0)
+        else
+            if V.length line == 6 
+            then
+                dayRaw
+                    <$> (line V.! 0 &! unpack &! ymd)
+                    <*> (line V.! 1 &! parseDouble >>= nonNegativeRealDouble)
+                    <*> (line V.! 2 &! parseDouble >>= nonNegativeRealDouble)
+                    <*> (line V.! 3 &! parseDouble >>= nonNegativeRealDouble)
+                    <*> (line V.! 4 &! parseDouble >>= nonNegativeRealDouble)
+                    <*> (line V.! 5 &! parseInt >>= nonNegativeInt)
+                    >>= day
+                    <&> Right
+            else 
+                Nothing)
+    &! allOrNothing
+
+finalizeStockProperties :: V.Vector (Either Text Day) -> V.Vector Stock
+finalizeStockProperties props = props
+    &! chunkOn isLeft
+    &! V.mapMaybe (\chunk ->
+        let 
+            s = V.head chunk &! fromLeft' &! unpack
+            d = V.tail chunk <&> fromRight'
+        in
+            NEV.fromVector d >>= stock s)
+
 -- Parses stocks from CSV.
+-- For performance reasons, 
 parseStocksCompactCSV :: Text -> Maybe (V.Vector Stock)
-parseStocksCompactCSV txt = 
-    let 
-        parsed1 :: V.Vector (V.Vector Text)
-        parsed1 = txt
-            & splitOn "\n"
-            &! V.fromList
-            <&> (V.fromList . splitOn ",")
-        parsed2 :: Maybe (V.Vector (Either (Int, Text) Day))
-        parsed2 = parsed1
-            &! imap (\i line -> 
-                if V.length line == 1
-                then 
-                    Just $! Left $! (i, line V.! 0)
-                else
-                    if V.length line  == 6 
-                    then
-                        dayRaw
-                            <$> (line V.! 0 &! unpack &! ymd)
-                            <*> (line V.! 1 &! parseDouble >>= nonNegativeRealDouble)
-                            <*> (line V.! 2 &! parseDouble >>= nonNegativeRealDouble)
-                            <*> (line V.! 3 &! parseDouble >>= nonNegativeRealDouble)
-                            <*> (line V.! 4 &! parseDouble >>= nonNegativeRealDouble)
-                            <*> (line V.! 5 &! parseInt >>= nonNegativeInt)
-                            >>= day
-                            <&> Right
-                    else 
-                        Nothing)
-            &! allOrNothing
-        indices1 :: Maybe (V.Vector Int)
-        indices1 = parsed2
-            <&> V.mapMaybe (\e -> leftToMaybe e <&> fst)
-        indices2 :: Maybe (V.Vector (Int, Int))
-        indices2 = undefined
-            
-        parsed3 :: Maybe (V.Vector Stock)
-        parsed3 = parsed2
-            >>= (\p2 -> 
-                if V.null p2 || isRight (V.head p2)
-                then Nothing
-                else Nothing
-
-                    )
-    in 
-        parsed3
-
-    -- case ((decode :: ByteString -> Maybe Value) $! fromStrict $! encodeUtf8 $! txt) of
-    --     Just (Array v) ->
-    --         Just $! (V.mapMaybe toStock $! v)
-    --     Nothing -> 
-    --         Nothing
+parseStocksCompactCSV txt = txt
+    &! tokenizeStocksCompactCSV 
+    &! interpretStocksTokens 
+    <&> finalizeStockProperties
 
 parseInt :: Text -> Maybe Int
 parseInt = readMaybe . unpack 
 
 parseDouble :: Text -> Maybe Double
 parseDouble = readMaybe . unpack 
-
--- -- Tries to extract a String from an Aeson.Value.
--- toString :: Value -> Maybe String
--- toString val = case val of
---     String txt -> Just $! unpack $! txt
---     _ -> Nothing
-
--- -- Tries to extract an Int from an Aeson.Value.
--- toInt :: Value -> Maybe Int
--- toInt val = case val of
---     Number s -> toBoundedInteger s
---     _ -> Nothing
-
--- -- Tries to extract a Vector from an Aeson.Value.
--- toVector :: Value -> Maybe (V.Vector Value)
--- toVector val =
---     case val of
---         Array vec -> Just $! vec
---         _ -> Nothing
-
--- -- Tries to extract a Vector and its elements from an Aeson.Value.
--- -- Returns Nothing if at least one element fails to convert.
--- toMappedVector :: (Value -> Maybe a) -> Value -> Maybe (V.Vector a)
--- toMappedVector f val = case val of
---     Array vec -> 
---         let 
---             mappedVec = V.mapMaybe f vec
---         in
---             if (V.length mappedVec) == (V.length vec) 
---             then Just $! mappedVec
---             else Nothing
---     _ ->
---         Nothing
-
--- -- Tries to extract a Day from an Aeson.Value. 
--- toDay :: Value -> Maybe Day
--- toDay val = 
---     case val of
---         Array vec -> 
---             if length vec /= 6
---             then Nothing
---             else
---                 dayRaw
---                     <$> (vec V.! 0 ^? _String <&> unpack >>= ymd)
---                     <*> (vec V.! 1 ^? _Double >>= nonNegativeRealDouble)
---                     <*> (vec V.! 2 ^? _Double >>= nonNegativeRealDouble)
---                     <*> (vec V.! 3 ^? _Double >>= nonNegativeRealDouble)
---                     <*> (vec V.! 4 ^? _Double >>= nonNegativeRealDouble)
---                     <*> (vec V.! 5 & toInt >>= nonNegativeInt)
---                     >>= day
---         _ ->
---             Nothing  
-
--- -- Tries to extract a Stock from an Aeson.Value.
--- toStock :: Value -> Maybe Stock
--- toStock val = 
---     case val of
---         Array vec ->
---             if length vec /= 2
---             then Nothing
---             else
---                 stock 
---                     <$> (vec & (V.! 0) & toString)
---                     <*> (vec & (V.! 1) & toMappedVector toDay >>= NEV.fromVector)
---                     & join
---         _ ->
---             Nothing

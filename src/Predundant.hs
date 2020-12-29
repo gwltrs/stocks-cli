@@ -5,6 +5,7 @@ import Data.Maybe (mapMaybe)
 import Control.Category ((>>>))
 import qualified Data.Vector as V
 import Data.Function ((&))
+import Data.Either.Combinators (rightToMaybe)
 
 -- Returns array if all elements are Just.
 -- Otherwise returns Nothing.
@@ -34,27 +35,27 @@ between :: Ord a => (a, a) -> a -> Bool
 between (min, max) value =
     min <= value && value <= max
 
--- Creates chunks (head, tail) of the vector using the given predicate.
+-- Creates chunksof the vector using the given predicate.
 -- A new chunk is created whenever an element satisfies the given predicate.
 -- The first chunk doesn't start until the first 
--- element that satisfies the predicate is created.
-chunkOn :: (a -> Maybe b) -> V.Vector a -> V.Vector (b, V.Vector a)
-chunkOn mapHeadMaybe vec = 
+-- element that satisfies the predicate is found.
+chunkOn :: (a -> Bool) -> V.Vector a -> V.Vector (V.Vector a)
+chunkOn isHead vec =
     let 
         pair a b = (a, b)
+        mapped1 :: V.Vector Int
         mapped1 = vec
-            & V.imapMaybe (\i e -> mapHeadMaybe e <&> pair i)
+            & V.imapMaybe (\i e -> if isHead e then Just i else Nothing)
         mapped2 = mapped1 
-            & V.imap (\i tup -> 
+            & V.imap (\i e -> 
                 let
                     isLast = i == (length mapped1 - 1)
                     sliceInds = (
-                        fst tup + 1, 
+                        e, 
                         if isLast 
                         then length vec - 1
-                        else (mapped1 V.! (i + 1) & fst) - 1)
+                        else mapped1 V.! (i + 1) - 1)
                 in
-                    (snd tup, 
-                    V.slice (fst sliceInds) (snd sliceInds - fst sliceInds + 1) vec))
+                    V.slice (fst sliceInds) (snd sliceInds - fst sliceInds + 1) vec)
     in
         mapped2
