@@ -122,11 +122,6 @@ instance Arbitrary Stock where
 instance Arbitrary Day where
     arbitrary = goodDayRaw <&> (day >>> fromJust)
 
--- instance Arbitrary (V.Vector Day) where
---     arbitrary = do
---         list <- arbitrary
---         V.fromList list
-
 -- Adds up to leadings zeros to the string.
 leadZeros :: Int -> String -> String
 leadZeros n str = 

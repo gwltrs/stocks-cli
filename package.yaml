@@ -40,6 +40,8 @@ dependencies:
 - split
 - nonempty-vector
 - vector-split
+- quickcheck-instances
+- either
 
 library:
   source-dirs: src

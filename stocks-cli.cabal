@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 43f525fd7046ed34dd3a95ac811cbba2fb37c3a9112a9221c5cb38cf93a749c9
+-- hash: 63ade90c5af0acaab5e2750d1c10a049e174e497eccb906a0117b09e85ea8632
 
 name:           stocks-cli
 version:        0.1.0.0
@@ -34,7 +34,7 @@ library
       EODHD
       Predundant
       Prettify
-      StocksCompactJSON
+      StocksCompactCSV
       TestStocks
       Types
       ValidatedLiterals
@@ -48,6 +48,7 @@ library
     , async
     , base >=4.7 && <5
     , bytestring
+    , either
     , errors
     , extra
     , ghc-lib-parser
@@ -56,6 +57,7 @@ library
     , lens-aeson
     , mtl
     , nonempty-vector
+    , quickcheck-instances
     , scientific
     , sort
     , split
@@ -78,6 +80,7 @@ executable stocks-cli-exe
     , async
     , base >=4.7 && <5
     , bytestring
+    , either
     , errors
     , extra
     , ghc-lib-parser
@@ -86,6 +89,7 @@ executable stocks-cli-exe
     , lens-aeson
     , mtl
     , nonempty-vector
+    , quickcheck-instances
     , scientific
     , sort
     , split
@@ -103,8 +107,9 @@ test-suite stocks-cli-test
       CLISpec
       EODHDSpec
       Generators
+      PredundantSpec
       PrettifySpec
-      StocksCompactJSONSpec
+      StocksCompactCSVSpec
       TypesSpec
       Unsafe
       ValidatedLiteralsSpec
@@ -118,6 +123,7 @@ test-suite stocks-cli-test
     , async
     , base >=4.7 && <5
     , bytestring
+    , either
     , errors
     , extra
     , ghc-lib-parser
@@ -126,6 +132,7 @@ test-suite stocks-cli-test
     , lens-aeson
     , mtl
     , nonempty-vector
+    , quickcheck-instances
     , scientific
     , sort
     , split

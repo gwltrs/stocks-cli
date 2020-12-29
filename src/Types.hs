@@ -124,36 +124,31 @@ ymd :: String -> Maybe YYYYMMDD
 ymd str = 
     let
 
-
-        -- parseInt s = readMaybe s :: Maybe Int
-        -- between mn mx a = (mn <= a) && (a <= mx)
-        -- checkComponent drp tk mn mx str = str
-        --     & drop drp 
-        --     & take tk 
-        --     & parseInt 
-        --     <&> between mn mx 
-        --     & fromMaybe False
-
-
+        -- Validating integers manually profiles significantly 
+        -- faster than using Text.Read.readMaybe.
         yyyy = str & take 4
-        mmdd = str & drop 4 & take 4
+        mmdd = str & drop 4
+        mm = mmdd & take 2
+        dd = mmdd & drop 2
         m1 = mmdd !! 0
         m2 = mmdd !! 1
-        d1 = mmdd !! 2
-        d2 = mmdd !! 3
+        d1 = dd !! 0
+        d2 = dd !! 1
 
-
-        yValid = not $ any (not . isDigit) $ yyyy
-        mValid = m1 == '0' || (m1 == '1' && between ('0', '2') m2)
-        dValid = between ('0', '2') d1 || (d1 == '3' && between ('0', '1') d2)
-        
+        yyyyValid = not $ any (not . isDigit) $ yyyy
+        mmNot0 = mm /= "00"
+        mmNotTooBig = m1 == '0' || (m1 == '1' && between ('0', '2') m2)
+        mmValid = mmNot0 && mmNotTooBig
+        ddNot0 = dd /= "00"
+        ddNotTooBig = between ('0', '2') d1 || (d1 == '3' && between ('0', '1') d2)
+        ddValid = ddNot0 && ddNotTooBig
         
     in
-        if (length str == 8) && mValid && dValid && yValid
+        if (length str == 8) && mmValid && ddValid && yyyyValid
         then Just $! (YYYYMMDD str) 
         else Nothing
 
--- Extracts String from YYYYMMDD.
+-- Extracts String from YYYYMMDD. 
 str :: YYYYMMDD -> String
 str (YYYYMMDD str) = str
 

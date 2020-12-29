@@ -3,16 +3,18 @@ import Test.Hspec
 import Types
 import CLISpec (cliTests)
 import PrettifySpec (prettifyTests)
-import StocksCompactJSONSpec (stocksCompactJSONTests)
+import StocksCompactCSVSpec (stocksCompactCSVTests)
 import TypesSpec (typesTests)
 import ValidatedLiteralsSpec (validatedLiteralsTests)
 import EODHDSpec (eodhdTests)
+import PredundantSpec (predundantTests)
 
 main :: IO ()
 main = hspec $ do
     cliTests
     prettifyTests
-    stocksCompactJSONTests
+    stocksCompactCSVTests
     typesTests
     validatedLiteralsTests
     eodhdTests
+    predundantTests

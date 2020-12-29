@@ -7,8 +7,8 @@ import Data.Function ((&))
 import qualified Data.Vector as V
 
 import Types (Stock)
-import TestStocks (testStocksCompactJSON)
-import StocksCompactJSON (parseStocksCompactJSON)
+import TestStocks (testStocksCompactCSV)
+import StocksCompactCSV (parseStocksCompactCSV)
 
 data ValidatedLiterals = ValidatedLiterals {
     testStocks :: V.Vector Stock
@@ -18,5 +18,5 @@ validatedLiterals :: ValidatedLiterals
 validatedLiterals =
     let makeLiterals ts = ValidatedLiterals { testStocks = ts }
     in makeLiterals 
-        <$> parseStocksCompactJSON testStocksCompactJSON
+        <$> parseStocksCompactCSV testStocksCompactCSV
         & fromJust

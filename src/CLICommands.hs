@@ -21,7 +21,7 @@ import Predundant
 import Types
 import qualified CustomIO as CIO
 import Prettify (prettifyCmd, prettifyStocks)
-import StocksCompactJSON (toStocksCompactJSON, parseStocksCompactJSON)
+import StocksCompactCSV (toStocksCompactCSV, parseStocksCompactCSV)
 import Constants (eodhdAPIKeyEnvVar)
 import ValidatedLiterals (ValidatedLiterals(..), validatedLiterals)
 import EODHD (symbolsURL, parseSymbols, daysURL, parseDays)
@@ -78,7 +78,7 @@ cliCommands = [
             else do
                 _ <- CIO.prompt "Path: "
                     & CIO.liftM
-                    >>= (flip CIO.writeFile) (s & stocks & toStocksCompactJSON)
+                    >>= (flip CIO.writeFile) (s & stocks & toStocksCompactCSV)
                 CIO.liftM (putStrLn "Done" >> pure s) ) },
     CLICommand { 
         name = ["data", "file", "load"],
@@ -87,7 +87,7 @@ cliCommands = [
             fileText <- CIO.prompt "Path: " 
                 & CIO.liftM 
                 >>= CIO.readFile
-            stocks <- parseStocksCompactJSON fileText ?? "Wrong format"
+            stocks <- parseStocksCompactCSV fileText ?? "Wrong format"
             putStrLn "Done"
                 >> pure s { stocks = stocks }
                 & CIO.liftM ) } ]

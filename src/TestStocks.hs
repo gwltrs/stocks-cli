@@ -5,11 +5,11 @@ module TestStocks where
 import Data.Text (Text)
 
 import Types (Day(..), Stock(..))
-import StocksCompactJSON (parseStocksCompactJSON)
+import StocksCompactCSV (parseStocksCompactCSV)
 
 -- All float values rounded to the nearest sixteenth for precise floating-point representation.\
-testStocksCompactJSON :: Text
-testStocksCompactJSON = 
+testStocksCompactCSV :: Text
+testStocksCompactCSV = 
     "\
     \[\
     \    [\"AMZN\", [\
