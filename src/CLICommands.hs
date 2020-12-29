@@ -84,7 +84,7 @@ cliCommands = [
         name = ["data", "file", "load"],
         description = "Loads a stocks data set from a file", 
         effect = (\s -> CIO.printAndReturn s $ do
-            fileText <- CIO.prompt "Path: " 
+            fileText <- CIO.prompt "Path: "
                 & CIO.liftM 
                 >>= CIO.readFile
             stocks <- parseStocksCompactCSV fileText ?? "Wrong format"

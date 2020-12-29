@@ -25,6 +25,7 @@ import qualified Data.Vector as V
 import qualified Data.Vector.NonEmpty as NEV
 import Data.Vector.Split (chunksOf)
 import Data.Either.Extra (eitherToMaybe)
+import Data.List.Extra (trim)
 
 import Predundant
 import Types
@@ -78,7 +79,7 @@ readFile filePath =
 -- Combined functionalities of Prelude.putStr and Prelude.getLine.
 -- Fixes traditional out-of-order rendering issue by flushing buffer.
 prompt :: String -> IO String
-prompt str = putStr str >> hFlush stdout >> getLine
+prompt str = putStr str >> hFlush stdout >> getLine <&> trim
 
 promptSymbolsDate :: ExceptT String IO YYYYMMDD
 promptSymbolsDate = prompt "Get symbols from which date (YYYYMMDD): "
