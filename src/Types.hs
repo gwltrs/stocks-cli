@@ -35,10 +35,10 @@ data CLICommand = CLICommand {
 }
 
 data CLIState = CLIState {
-    stocks :: Vector Stock
+    stocks :: !(Vector Stock)
 }
 
-data Stock = Stock String (NEV.NonEmptyVector Day)
+data Stock = Stock !String !(NEV.NonEmptyVector Day)
     deriving (Eq, Show)
 
 -- Smart constructor for Stock.
@@ -73,7 +73,7 @@ newtype Day = Day DayRaw
 -- (besides the invariants enforced by the properties).
 -- Open, high, low, close are stored as cents.
 data DayRaw = DayRaw {
-    date :: YYYYMMDD,
+    date :: !YYYYMMDD,
     open :: {-# UNPACK #-} !NonNegativeInt,
     high :: {-# UNPACK #-} !NonNegativeInt,
     low :: {-# UNPACK #-} !NonNegativeInt,
@@ -173,28 +173,26 @@ int (NonNegativeInt i) = i
 centsFromDollars :: Double -> Int
 centsFromDollars dbl = round (dbl * 100)
 
--- instance Applicative Cents where
-
 -- Represents the parsed indicator script.
--- data IndicatorLang =
---     Leaf String [Float] | -- name and args
---     Or (NE.NonEmpty IndicatorLang) | 
---     And (NE.NonEmpty IndicatorLang)
+data IndicatorScript =
+    Leaf String (V.Vector Double) | -- name and args
+    Or (NEV.NonEmptyVector IndicatorScript) | 
+    And (NEV.NonEmptyVector IndicatorScript)
 
--- -- Data used to create the indicator.
--- data IndicatorDetails = IndicatorDetails {
---     -- Name of the indicator described in the indicator language.
---     indicatorName :: String,
---     -- The number of floating-point arguments required to create the indicator.
---     numArgs :: Int,
---     -- Creates the indicator with the supplied arguments.
---     create :: ([Float]) -> Indicator
--- }
+-- Data used to create the indicator.
+data IndicatorDetails = IndicatorDetails {
+    -- Name of the indicator described in the indicator script.
+    indicatorName :: String,
+    -- The number of floating-point arguments required to create the indicator.
+    numArgs :: Int,
+    -- Creates the indicator with the supplied arguments.
+    create :: ([Double]) -> Indicator
+}
 
--- -- Actual indicator used to filter the stocks.
--- data Indicator = Indicator {
---     -- The number of past days required by the indicator to filter a stock.
---     lookBehind :: Int,
---     -- Returns a bool that indicates if the stock is a valid pick.
---     filter :: [Day] -> Bool
--- }
+-- Actual indicator used to filter the stocks.
+data Indicator = Indicator {
+    -- The number of past days required by the indicator to filter a stock.
+    lookBehind :: Int,
+    -- Returns a bool that indicates if the stock is a valid pick.
+    filter :: [Day] -> Bool
+}

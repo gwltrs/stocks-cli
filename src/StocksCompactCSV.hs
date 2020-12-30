@@ -49,7 +49,7 @@ toStocksCompactCSV stocks =
 -- Exporting this enables granular debugging.
 tokenizeStocksCompactCSV :: Text -> V.Vector (V.Vector Text)
 tokenizeStocksCompactCSV txt = txt
-    & splitOn "\n"
+    &! splitOn "\n"
     &! V.fromList
     <&> (V.fromList . splitOn ",")
 
