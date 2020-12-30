@@ -8,6 +8,7 @@ import TypesSpec (typesTests)
 import ValidatedLiteralsSpec (validatedLiteralsTests)
 import EODHDSpec (eodhdTests)
 import PredundantSpec (predundantTests)
+import IndicatorParsingSpec (indicatorParsingTests)
 
 main :: IO ()
 main = hspec $ do
@@ -18,3 +19,4 @@ main = hspec $ do
     validatedLiteralsTests
     eodhdTests
     predundantTests
+    indicatorParsingTests

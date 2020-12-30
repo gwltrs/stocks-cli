@@ -6,7 +6,10 @@ module Types (
     DayRaw(..), dayRaw,
     YYYYMMDD, ymd, str,
     NonNegativeInt, nonNegativeInt, int,
-    centsFromDollars
+    centsFromDollars,
+    IndicatorScript(..),
+    IndicatorDetails(..),
+    Indicator(..)
 ) where
 
 import Test.QuickCheck
@@ -174,10 +177,12 @@ centsFromDollars :: Double -> Int
 centsFromDollars dbl = round (dbl * 100)
 
 -- Represents the parsed indicator script.
+-- Using lists here for prettier literals in tests.
 data IndicatorScript =
-    Leaf String (V.Vector Double) | -- name and args
-    Or (NEV.NonEmptyVector IndicatorScript) | 
-    And (NEV.NonEmptyVector IndicatorScript)
+    Leaf String [Double] | -- name and args
+    Or [IndicatorScript] | 
+    And [IndicatorScript]
+        deriving (Eq, Show)
 
 -- Data used to create the indicator.
 data IndicatorDetails = IndicatorDetails {
@@ -186,7 +191,7 @@ data IndicatorDetails = IndicatorDetails {
     -- The number of floating-point arguments required to create the indicator.
     numArgs :: Int,
     -- Creates the indicator with the supplied arguments.
-    create :: ([Double]) -> Indicator
+    create :: V.Vector Double -> Indicator
 }
 
 -- Actual indicator used to filter the stocks.
@@ -194,5 +199,5 @@ data Indicator = Indicator {
     -- The number of past days required by the indicator to filter a stock.
     lookBehind :: Int,
     -- Returns a bool that indicates if the stock is a valid pick.
-    filter :: [Day] -> Bool
+    shouldBuy :: V.Vector Day -> Bool
 }
