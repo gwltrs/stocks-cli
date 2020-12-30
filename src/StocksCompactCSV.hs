@@ -20,6 +20,7 @@ import Text.Read (readMaybe)
 import Data.Either (isLeft, isRight, fromLeft, fromRight)
 import Data.Either.Combinators (leftToMaybe, fromLeft', fromRight')
 import Data.Maybe (fromJust)
+import Data.Text.Read (decimal)
 
 import Predundant
 import Types
@@ -32,10 +33,10 @@ toStocksCompactCSV stocks =
         dayRawCSV dr = intercalate "," $! [ 
             -- Replace show with double-conversion
             (pack $! str $! date $! dr),
-            (pack $! show $! dbl $! open $! dr),
-            (pack $! show $! dbl $! high $! dr),
-            (pack $! show $! dbl $! low $! dr),
-            (pack $! show $! dbl $! close $! dr),
+            (pack $! show $! int $! open $! dr),
+            (pack $! show $! int $! high $! dr),
+            (pack $! show $! int $! low $! dr),
+            (pack $! show $! int $! close $! dr),
             (pack $! show $! int $! volume $! dr) ]
         stockCSV :: Stock -> Text
         stockCSV s =
@@ -65,10 +66,10 @@ interpretStocksTokens tokens = tokens
             then
                 dayRaw
                     <$> (line V.! 0 &! unpack &! ymd)
-                    <*> (line V.! 1 &! parseDouble >>= nonNegativeRealDouble)
-                    <*> (line V.! 2 &! parseDouble >>= nonNegativeRealDouble)
-                    <*> (line V.! 3 &! parseDouble >>= nonNegativeRealDouble)
-                    <*> (line V.! 4 &! parseDouble >>= nonNegativeRealDouble)
+                    <*> (line V.! 1 &! parseInt >>= nonNegativeInt)
+                    <*> (line V.! 2 &! parseInt >>= nonNegativeInt)
+                    <*> (line V.! 3 &! parseInt >>= nonNegativeInt)
+                    <*> (line V.! 4 &! parseInt >>= nonNegativeInt)
                     <*> (line V.! 5 &! parseInt >>= nonNegativeInt)
                     >>= day
                     <&> Right
@@ -95,7 +96,7 @@ parseStocksCompactCSV txt = txt
     <&> finalizeStockProperties
 
 parseInt :: Text -> Maybe Int
-parseInt = readMaybe . unpack 
-
-parseDouble :: Text -> Maybe Double
-parseDouble = readMaybe . unpack 
+parseInt txt = 
+    case decimal txt of
+        Right (i, _) -> Just i
+        Left _ -> Nothing

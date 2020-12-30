@@ -1,3 +1,4 @@
+{-# LANGUAGE NumericUnderscores #-}
 module Generators where
 
 import Test.Hspec
@@ -59,7 +60,7 @@ badYYYYMMDDStr =
 -- Produces DayRaw values that should always be accepted by the Day smart constructor.
 goodDayRaw :: Gen DayRaw
 goodDayRaw = do
-    (low, high) <- choose (0, maxDouble) 
+    (low, high) <- choose (0, 10_000)
         & vectorOf 2 
         <&> (\l -> (foldr1 min l, foldr1 min l))
     open <- choose (0, 1) <&> shiftRange (0, 1) (low, high)
@@ -68,10 +69,10 @@ goodDayRaw = do
     volume <- choose (0, maxBound) <&> nonNegativeInt <&> fromJust
     pure DayRaw {
         date = date, 
-        open = fromJust $ nonNegativeRealDouble $ open, 
-        high = fromJust $ nonNegativeRealDouble $ high, 
-        low = fromJust $ nonNegativeRealDouble $ low, 
-        close = fromJust $ nonNegativeRealDouble $ close, 
+        open = fromJust $ nonNegativeInt $ centsFromDollars $ open, 
+        high = fromJust $ nonNegativeInt $ centsFromDollars$ high, 
+        low = fromJust $ nonNegativeInt $ centsFromDollars $ low, 
+        close = fromJust $ nonNegativeInt $ centsFromDollars $ close, 
         volume = volume }
 
 -- Produces values that should always be accepted by the Stock smart constructor.
@@ -127,14 +128,6 @@ leadZeros :: Int -> String -> String
 leadZeros n str = 
     let ys = take n str
     in replicate (n - length ys) '0' ++ ys
-
--- Approximate minimum value of IEEE double-precision floating-point number
-minDouble :: Double
-minDouble = -1.75 * 10 ** 308
-
--- Approximate minimum value of IEEE double-precision floating-point number
-maxDouble :: Double
-maxDouble = 1.75 * 10 ** 308
 
 -- Converts the given number from one range to another.
 -- Example: shiftRange (0, 1) (100, 200) 0.5 == 150.

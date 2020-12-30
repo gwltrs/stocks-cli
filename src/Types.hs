@@ -6,7 +6,7 @@ module Types (
     DayRaw(..), dayRaw,
     YYYYMMDD, ymd, str,
     NonNegativeInt, nonNegativeInt, int,
-    NonNegativeRealDouble, nonNegativeRealDouble, dbl
+    centsFromDollars
 ) where
 
 import Test.QuickCheck
@@ -71,22 +71,23 @@ newtype Day = Day DayRaw
 
 -- The Day type without enforced invariants
 -- (besides the invariants enforced by the properties).
+-- Open, high, low, close are stored as cents.
 data DayRaw = DayRaw {
     date :: YYYYMMDD,
-    open :: {-# UNPACK #-} !NonNegativeRealDouble,
-    high :: {-# UNPACK #-} !NonNegativeRealDouble,
-    low :: {-# UNPACK #-} !NonNegativeRealDouble,
-    close :: {-# UNPACK #-} !NonNegativeRealDouble,
+    open :: {-# UNPACK #-} !NonNegativeInt,
+    high :: {-# UNPACK #-} !NonNegativeInt,
+    low :: {-# UNPACK #-} !NonNegativeInt,
+    close :: {-# UNPACK #-} !NonNegativeInt,
     volume :: {-# UNPACK #-} !NonNegativeInt
 } deriving (Eq, Show)
 
 -- Convenience constructor for DayRaw.
 dayRaw ::
     YYYYMMDD 
-    -> NonNegativeRealDouble 
-    -> NonNegativeRealDouble 
-    -> NonNegativeRealDouble 
-    -> NonNegativeRealDouble 
+    -> NonNegativeInt 
+    -> NonNegativeInt 
+    -> NonNegativeInt 
+    -> NonNegativeInt 
     -> NonNegativeInt
     -> DayRaw
 dayRaw d o h l c v = DayRaw {
@@ -102,9 +103,9 @@ raw (Day dr) = dr
 day :: DayRaw -> Maybe Day
 day dr = 
     let 
-        allDoubles = [open dr, high dr, low dr, close dr] <&> dbl
-        invalidLow = (dbl $ low $ dr) > foldr1 min allDoubles
-        invalidHigh = (dbl $ high $ dr) < foldr1 max allDoubles
+        allCents = [open dr, high dr, low dr, close dr] <&> int
+        invalidLow = (int $ low $ dr) > foldr1 min allCents
+        invalidHigh = (int $ high $ dr) < foldr1 max allCents
     in
         if invalidLow || invalidHigh then
             Nothing
@@ -167,20 +168,12 @@ nonNegativeInt i =
 int :: NonNegativeInt -> Int
 int (NonNegativeInt i) = i
 
-newtype NonNegativeRealDouble = NonNegativeRealDouble Double
-    deriving (Eq, Show)
+-- Converts dollars as double to cents as an int.
+-- Rounds to the nearest cent.
+centsFromDollars :: Double -> Int
+centsFromDollars dbl = round (dbl * 100)
 
--- Smart constructor for NonNegativeRealDouble
-nonNegativeRealDouble :: Double -> Maybe NonNegativeRealDouble
-nonNegativeRealDouble d =
-    if isNaN d || isInfinite d || d < 0 then
-        Nothing
-    else 
-        Just $! NonNegativeRealDouble $ d
-
--- Extracts Double from NonNegativeRealDouble.
-dbl :: NonNegativeRealDouble -> Double
-dbl (NonNegativeRealDouble d) = d
+-- instance Applicative Cents where
 
 -- Represents the parsed indicator script.
 -- data IndicatorLang =

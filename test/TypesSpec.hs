@@ -30,26 +30,17 @@ typesTests = do
             property
                 $ forAll (choose (minBound, -1))
                 $ \i -> (i & nonNegativeInt <&> int) == Nothing
-    describe "Types.nonNegativeRealDouble" $ do
-        it "should create NonNegativeRealDouble when given valid Double" $ do
-            property
-                $ forAll (choose (0, maxDouble))
-                $ \f -> (f & nonNegativeRealDouble <&> dbl) == Just f
-        it "should fail when given invalid Double" $ do
-            property
-                $ forAll (oneof [choose (minDouble, -0.000000001), nonRealDouble]) 
-                $ \f -> (f & nonNegativeRealDouble <&> dbl) == Nothing
     describe "Types.day" $ do
         it "should create day when given valid inputs" $ do
             property
                 $ forAll goodDayRaw
                 $ \dr -> (day dr <&> raw) == Just dr
         it "should fail when given invalid inputs" $ do
-            day (unsafeDayRaw "12340408" 2.5 2.0 0.5 1.0 50) -- open > high
+            day (unsafeDayRaw "12340408" 250 200 050 100 50) -- open > high
                 `shouldBe` Nothing
-            day (unsafeDayRaw "11111111" 111.1 100.5 99.9 88.88 777777) -- close < low
+            day (unsafeDayRaw "11111111" 111 100 99 88 777777) -- close < low
                 `shouldBe` Nothing
-            day (unsafeDayRaw "20201225" 0.0 2.0 1.0 3.0 5) -- open < low, close > high
+            day (unsafeDayRaw "20201225" 0 200 100 300 5) -- open < low, close > high
                 `shouldBe` Nothing
     describe "Types.stock" $ do
         it "should create stock when given valid inputs" $ do
@@ -62,4 +53,14 @@ typesTests = do
                 $ forAll badStockArgs
                 $ \args -> 
                     (args & (uncurry stock) <&> (\m -> (symbol m, days m))) == Nothing
-                    
+    describe "Types.centsFromDollars" $ do
+        it "should convert dollars double to cents integer" $ do
+            centsFromDollars 0.0 `shouldBe` 0
+            centsFromDollars (-0.003) `shouldBe` 0
+            centsFromDollars 0.1 `shouldBe` 10
+            centsFromDollars 0.02 `shouldBe` 2
+            centsFromDollars 3.45 `shouldBe` 345
+            centsFromDollars (-12.34) `shouldBe` -1234
+            centsFromDollars 10.109 `shouldBe` 1011
+            centsFromDollars 0.9999 `shouldBe` 100
+            centsFromDollars 0.400001 `shouldBe` 40

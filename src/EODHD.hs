@@ -61,10 +61,10 @@ parseDays text =
                 <&> unpack 
                 <&> filter isDigit
                 >>= ymd)
-            <*> (v ^? key "open" . _Double >>= nonNegativeRealDouble)
-            <*> (v ^? key "high" . _Double >>= nonNegativeRealDouble)
-            <*> (v ^? key "low" . _Double >>= nonNegativeRealDouble)
-            <*> (v ^? key "close" . _Double >>= nonNegativeRealDouble)
+            <*> (v ^? key "open" . _Double <&> centsFromDollars >>= nonNegativeInt)
+            <*> (v ^? key "high" . _Double <&> centsFromDollars >>= nonNegativeInt)
+            <*> (v ^? key "low" . _Double <&> centsFromDollars >>= nonNegativeInt)
+            <*> (v ^? key "close" . _Double <&> centsFromDollars >>= nonNegativeInt)
             <*> ((v ^? key "volume") >>= toInt >>= nonNegativeInt)
             >>= day
     in

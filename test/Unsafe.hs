@@ -8,19 +8,19 @@ import qualified Data.Vector.NonEmpty as NEV
 import Types
 
 -- Unsafe Day constructor. Allows tests to be more succinct.
-unsafeDay :: String -> Double -> Double -> Double -> Double -> Int -> Day
+unsafeDay :: String -> Int -> Int -> Int -> Int -> Int -> Day
 unsafeDay d o h l c v = 
     fromJust $ day $ unsafeDayRaw d o h l c v
 
 -- Unsafe DayRaw constructor. Allows tests to be more succinct.
-unsafeDayRaw :: String -> Double -> Double -> Double -> Double -> Int -> DayRaw
+unsafeDayRaw :: String -> Int -> Int -> Int -> Int -> Int -> DayRaw
 unsafeDayRaw d o h l c v = 
     dayRaw
         (fromJust $ ymd $ d)
-        (fromJust $ nonNegativeRealDouble $ o)
-        (fromJust $ nonNegativeRealDouble $ h)
-        (fromJust $ nonNegativeRealDouble $ l)
-        (fromJust $ nonNegativeRealDouble $ c)
+        (fromJust $ nonNegativeInt $ o)
+        (fromJust $ nonNegativeInt $ h)
+        (fromJust $ nonNegativeInt $ l)
+        (fromJust $ nonNegativeInt $ c)
         (fromJust $ nonNegativeInt $ v)
 
 -- Unsafe Stock constructor. Allows tests to be more succinct.

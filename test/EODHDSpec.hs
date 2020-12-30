@@ -110,14 +110,14 @@ good1DayJSON =
 
 good1Day :: [Day]
 good1Day = [
-    unsafeDay "19991118" 45.5 49.75 40.0 44.0 44744700]
+    unsafeDay "19991118" 4550 4975 4000 4400 44744700]
 
 good2DaysJSON :: ByteString
 good2DaysJSON = 
     "[\
     \   {\
     \      \"date\":\"2020-07-28\",\
-    \      \"open\":1.75,\
+    \      \"open\":1.751,\
     \      \"high\":2,\
     \      \"low\":1,\
     \      \"close\":1.25,\
@@ -127,8 +127,8 @@ good2DaysJSON =
     \   {\
     \      \"date\":\"2020-07-29\",\
     \      \"open\":2.75,\
-    \      \"high\":3,\
-    \      \"low\":2,\
+    \      \"high\":2.999,\
+    \      \"low\":1.9999999,\
     \      \"close\":2.5,\
     \      \"adjusted_close\":55,\
     \      \"volume\":4444\
@@ -137,5 +137,5 @@ good2DaysJSON =
 
 good2Days :: [Day]
 good2Days = [
-    unsafeDay "20200728" 1.75 2 1 1.25 333,
-    unsafeDay "20200729" 2.75 3 2 2.5 4444]
+    unsafeDay "20200728" 175 200 100 125 333,
+    unsafeDay "20200729" 275 300 200 250 4444]
