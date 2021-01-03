@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d8705a3c41d6f2522add214c842e8b25ade3faa3c9a2b4157acaa16f9ac2f138
+-- hash: be42290ee7806b9cecf943d4e072d7e6ab7d6c55bea546616fd5d079bd985133
 
 name:           stocks-cli
 version:        0.1.0.0
@@ -58,6 +58,7 @@ library
     , lens-aeson
     , mtl
     , nonempty-vector
+    , parsec
     , quickcheck-instances
     , scientific
     , sort
@@ -90,6 +91,7 @@ executable stocks-cli-exe
     , lens-aeson
     , mtl
     , nonempty-vector
+    , parsec
     , quickcheck-instances
     , scientific
     , sort
@@ -134,6 +136,7 @@ test-suite stocks-cli-test
     , lens-aeson
     , mtl
     , nonempty-vector
+    , parsec
     , quickcheck-instances
     , scientific
     , sort

@@ -42,6 +42,7 @@ dependencies:
 - vector-split
 - quickcheck-instances
 - either
+- parsec
 
 library:
   source-dirs: src

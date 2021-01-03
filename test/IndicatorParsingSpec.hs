@@ -24,10 +24,7 @@ indicatorParsingTests = do
                             And [
                                 Leaf "c" [], 
                                 Leaf "d" []],
-                            Leaf "e" [0.25]   
-                                ])])
-
-
+                            Leaf "e" [0.25]])])
         it "rejects invalid inputs" $ do
             parseIndicators "" 
                 `shouldBe` Nothing
