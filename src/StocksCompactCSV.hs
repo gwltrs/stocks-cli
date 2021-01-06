@@ -66,11 +66,11 @@ interpretStocksTokens tokens = tokens
             then
                 dayRaw
                     <$> (line V.! 0 &! unpack &! ymd)
-                    <*> (line V.! 1 &! parseInt >>= nonNegativeInt)
-                    <*> (line V.! 2 &! parseInt >>= nonNegativeInt)
-                    <*> (line V.! 3 &! parseInt >>= nonNegativeInt)
-                    <*> (line V.! 4 &! parseInt >>= nonNegativeInt)
-                    <*> (line V.! 5 &! parseInt >>= nonNegativeInt)
+                    <*> (line V.! 1 &! parseIntMaybe >>= nonNegativeInt)
+                    <*> (line V.! 2 &! parseIntMaybe >>= nonNegativeInt)
+                    <*> (line V.! 3 &! parseIntMaybe >>= nonNegativeInt)
+                    <*> (line V.! 4 &! parseIntMaybe >>= nonNegativeInt)
+                    <*> (line V.! 5 &! parseIntMaybe >>= nonNegativeInt)
                     >>= day
                     <&> Right
             else 
@@ -95,8 +95,9 @@ parseStocksCompactCSV txt = txt
     &! interpretStocksTokens 
     <&> finalizeStockProperties
 
-parseInt :: Text -> Maybe Int
-parseInt txt = 
+-- A performant option to Text.Read.readMaybe.
+parseIntMaybe :: Text -> Maybe Int
+parseIntMaybe txt = 
     case decimal txt of
         Right (i, _) -> Just i
         Left _ -> Nothing

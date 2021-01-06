@@ -59,3 +59,7 @@ chunkOn isHead vec =
                     V.slice (fst sliceInds) (snd sliceInds - fst sliceInds + 1) vec)
     in
         mapped2
+
+-- Returns a list of length 1 that contains the given argument.
+singleton :: a -> [a]
+singleton a = [a] 

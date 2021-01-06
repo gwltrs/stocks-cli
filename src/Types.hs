@@ -7,8 +7,8 @@ module Types (
     YYYYMMDD, ymd, str,
     NonNegativeInt, nonNegativeInt, int,
     centsFromDollars,
-    IndicatorScript(..),
-    IndicatorDetails(..),
+    IndyParsed(..),
+    IndyFunc(..),
     Indicator(..)
 ) where
 
@@ -178,20 +178,14 @@ centsFromDollars dbl = round (dbl * 100)
 
 -- Represents the parsed indicator script.
 -- Using lists here for prettier literals in tests.
-data IndicatorScript =
-    Leaf String [Double] | -- name and args
-    Or [IndicatorScript] | 
-    And [IndicatorScript]
-        deriving (Eq, Show)
+data IndyParsed = IndyParsed String [Either IndyParsed Double] -- name and args
+    deriving (Eq, Show)
 
 -- Data used to create the indicator.
-data IndicatorDetails = IndicatorDetails {
-    -- Name of the indicator described in the indicator script.
-    indicatorName :: String,
-    -- The number of floating-point arguments required to create the indicator.
+data IndyFunc = IndyFunc {
+    indyName :: String,
     numArgs :: Int,
-    -- Creates the indicator with the supplied arguments.
-    create :: V.Vector Double -> Indicator
+    call :: Either ([Either IndyFunc Double] -> IndyFunc) ([Double] -> Indicator)
 }
 
 -- Actual indicator used to filter the stocks.

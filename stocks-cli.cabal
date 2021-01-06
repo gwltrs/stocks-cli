@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: be42290ee7806b9cecf943d4e072d7e6ab7d6c55bea546616fd5d079bd985133
+-- hash: ca6ea08983d144689dfc260cbdc6bc64e164a7e7cba58049eae43537125b2d24
 
 name:           stocks-cli
 version:        0.1.0.0
@@ -32,7 +32,7 @@ library
       Constants
       CustomIO
       EODHD
-      IndicatorParsing
+      IndyParsing
       Predundant
       Prettify
       StocksCompactCSV
@@ -110,7 +110,7 @@ test-suite stocks-cli-test
       CLISpec
       EODHDSpec
       Generators
-      IndicatorParsingSpec
+      IndyParsingSpec
       PredundantSpec
       PrettifySpec
       StocksCompactCSVSpec
