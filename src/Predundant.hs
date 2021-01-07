@@ -71,3 +71,8 @@ chunkOn isHead vec =
 -- Returns a list of length 1 that contains the given argument.
 singleton :: a -> [a]
 singleton a = [a] 
+
+-- Converts Maybe to Either.
+toEither :: err -> Maybe a -> Either err a
+toEither err Nothing = Left err
+toEither _ (Just a) = Right a
