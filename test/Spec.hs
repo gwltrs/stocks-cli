@@ -9,6 +9,7 @@ import ValidatedLiteralsSpec (validatedLiteralsTests)
 import EODHDSpec (eodhdTests)
 import PredundantSpec (predundantTests)
 import IndyParsingSpec (indyParsingTests)
+import IndyComposingSpec (indyComposingTests)
 
 main :: IO ()
 main = hspec $ do
@@ -20,3 +21,4 @@ main = hspec $ do
     eodhdTests
     predundantTests
     indyParsingTests
+    indyComposingTests

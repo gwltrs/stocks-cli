@@ -18,6 +18,14 @@ allOrNothing arr =
         then Just filtered
         else Nothing
 
+-- Returns the last n elements of the give vector.
+-- Will return the vector unchanged if length <= n.
+lastN :: Int -> V.Vector a -> V.Vector a
+lastN n vec = 
+    if V.length vec <= n
+    then vec
+    else V.drop (V.length vec - n) vec
+
 -- Maps a doubly-nested functor.
 infixl 1 <<&>>
 (<<&>>) :: (Functor f, Functor g) => f (g a) -> (a -> b) -> f (g b)

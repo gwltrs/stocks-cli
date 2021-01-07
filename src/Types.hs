@@ -181,11 +181,11 @@ centsFromDollars dbl = round (dbl * 100)
 data IndyParsed = IndyParsed String [Either IndyParsed Double] -- name and args
     deriving (Eq, Show)
 
--- Data used to create the indicator.
+-- An indicator function that creates an indicator or another indicator function.
+-- Useful for composing indicators.
 data IndyFunc = IndyFunc {
-    indyName :: String,
-    numArgs :: Int,
-    call :: Either ([Either IndyFunc Double] -> IndyFunc) ([Double] -> Indicator)
+    indyFuncName :: String,
+    call :: [Either Indicator Double] -> Maybe Indicator
 }
 
 -- Actual indicator used to filter the stocks.

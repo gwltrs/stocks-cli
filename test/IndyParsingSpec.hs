@@ -9,7 +9,7 @@ import IndyParsing (parseIndy)
 
 indyParsingTests :: SpecWith ()
 indyParsingTests = do
-    describe "IndicatorParsing.parseIndicators" $ do
+    describe "IndyParsing.parseIndicators" $ do
         it "parses valid input" $ do
             -- Indicator names are alphanumeric but can also have "_".
             parseIndy "smva5_10()"
