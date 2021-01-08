@@ -10,6 +10,7 @@ import EODHDSpec (eodhdTests)
 import PredundantSpec (predundantTests)
 import IndyParsingSpec (indyParsingTests)
 import IndyComposingSpec (indyComposingTests)
+import IndyCommandsSpec (indyCommandsTests)
 
 main :: IO ()
 main = hspec $ do
@@ -22,3 +23,4 @@ main = hspec $ do
     predundantTests
     indyParsingTests
     indyComposingTests
+    indyCommandsTests

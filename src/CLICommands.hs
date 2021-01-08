@@ -112,3 +112,9 @@ dataFileLoadCmd = CLICommand {
         putStrLn "Done"
             >> pure s { stocks = stocks }
             & CIO.liftM ) }
+
+indyFindAll :: CLICommand
+indyFindAll = CLICommand { 
+    name = ["indy", "find", "all"],
+    description = "Finds all historical instances ", 
+    effect = (exitSuccess $>) }

@@ -32,6 +32,7 @@ infixl 1 <<&>>
 (<<&>>) f map = f <&> (<&> map)
 {-# INLINE (<<&>>) #-}
 
+-- Strict evaluation version of Data.Function.(&)
 infixl 1 &!
 (&!) :: a -> (a -> b) -> b
 (&!) a f = f $! a

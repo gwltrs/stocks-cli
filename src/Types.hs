@@ -18,7 +18,6 @@ import Data.Function ((&))
 import Data.Coerce (coerce)
 import Data.Maybe (isJust, fromMaybe)
 import Text.Read (readMaybe)
---import qualified Data.List.NonEmpty as NE (NonEmpty(..), toList)
 import qualified Data.Vector as V
 import qualified Data.Vector.NonEmpty as NEV
 import Data.Vector (Vector)
@@ -158,7 +157,7 @@ str (YYYYMMDD str) = str
 
 -- Int newtype that disallows negative values.
 newtype NonNegativeInt = NonNegativeInt Int 
-    deriving (Eq, Show)
+    deriving (Eq, Show, Ord)
 
 -- Smart constructor for NonNegativeInt.
 nonNegativeInt :: Int -> Maybe NonNegativeInt
