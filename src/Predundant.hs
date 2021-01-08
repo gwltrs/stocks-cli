@@ -66,3 +66,7 @@ singleton a = [a]
 toEither :: err -> Maybe a -> Either err a
 toEither err Nothing = Left err
 toEither _ (Just a) = Right a
+
+-- Constructor for 2-value tuple.
+pair :: a -> b -> (a, b)
+pair a b = (a, b)

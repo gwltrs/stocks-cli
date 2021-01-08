@@ -23,9 +23,19 @@ allIndyFuncs = [
         "Accepts indicator args.\n\
         \Returns an indicator that signals a buy when\n\
         \all the indicator args also signal a buy."),
+    (
+        notIF,
+        "Accepts 1 indicator arg.\n\
+        \Returns a new indicator that signals a buy only\n\
+        \when the given indicator arg doesn't signal a buy."),
+    ( 
+        shiftIF,
+        "Accepts 1 positive integer arg (N) and 1 indicator arg, in that order.\n\
+        \Returns an indicator that uses the same signaling logic as\n\
+        \the given indicator but starts looking N days earlier."),
     (   
         smaAboveIF,
-        "Accepts 2 numeric args.\n\
+        "Accepts 2 positive integer args.\n\
         \Signals a buy if the simple moving average with\n\
         \the range of the first arg is greater than the second.")]
 
@@ -38,6 +48,39 @@ andIF = booleanImpl "and" (&&)
 -- one of the given indicator arguments signals a buy.
 orIF :: IndyFunc
 orIF = booleanImpl "or" (||)
+
+-- Accepts 1 indicator arg.
+-- Returns a new indicator that signals a buy only
+-- when the given indicator arg doesn't signal a buy.
+notIF :: IndyFunc
+notIF = IndyFunc {
+    indyFuncName = "not",
+    call = (\args-> 
+        case args of 
+            [Left indArg] -> 
+                Just Indicator {
+                    lookBehind = lookBehind indArg,
+                    shouldBuy = not . (shouldBuy indArg)}
+            _ -> Nothing)}
+
+-- Accepts 1 positive integer arg (N) and 1 indicator arg, in that order.
+-- Returns an indicator that uses the same signaling logic as
+-- the given indicator but starts looking N days earlier.
+shiftIF :: IndyFunc
+shiftIF = IndyFunc {
+    indyFuncName = "shift",
+    call = (\args ->
+        case args of
+            [arg1, arg2] ->
+                case pair <$> (rightToMaybe arg1 >>= posInt) <*> (leftToMaybe arg2) of
+                    Just (n, ind) -> 
+                        Just Indicator {
+                            lookBehind = n + (lookBehind ind),
+                            shouldBuy = (\days -> days
+                                & V.take (lookBehind ind)
+                                & (shouldBuy ind))}
+                    _ -> Nothing
+            _ -> Nothing)}
 
 -- Accepts 2 numeric args.
 -- Signals a buy if the simple moving average with
@@ -63,7 +106,6 @@ smaAboveIF = IndyFunc {
                         )}
             _ -> Nothing)}
 
-
 -- Avoiding boilerplate. "and" and "or" IndyFuncs are almost identical.
 booleanImpl :: String -> (Bool -> Bool -> Bool) -> IndyFunc
 booleanImpl name boolOp = 
@@ -85,8 +127,7 @@ booleanImpl name boolOp =
                             <&> (\ind -> (shouldBuy ind) (lastN (lookBehind ind) days))
                             & foldr boolOp True)})}
 
--- Many indicator args actually want a 
--- positive integer instead of a float.
+-- Many indicators actually want positive integers instead of floats.
 posInt :: Double -> Maybe Int
 posInt dbl = 
     if round dbl > 0 

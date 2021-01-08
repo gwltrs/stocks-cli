@@ -32,6 +32,7 @@ unsafeStock symbol days =
 unsafeYMD :: String -> YYYYMMDD
 unsafeYMD s = fromJust $ ymd $ s
 
+-- Unsafe NonEmptyVector constructor. Allows tests to be more succinct.
 unsafeNonEmptyVector :: [a] -> NEV.NonEmptyVector a
 unsafeNonEmptyVector list = 
     fromJust $ NEV.fromList $ list
@@ -40,5 +41,6 @@ unsafeNonEmptyVector list =
 first2 :: [a] -> (a, a)
 first2 arr = (arr !! 0, arr !! 1)
 
+-- Unsafe NonNegativeCents constructor. Allows tests to be more succinct.
 unsafeCents :: Int -> NonNegativeCents
 unsafeCents i = fromJust $ nonNegativeCents i
