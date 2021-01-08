@@ -17,11 +17,11 @@ unsafeDayRaw :: String -> Int -> Int -> Int -> Int -> Int -> DayRaw
 unsafeDayRaw d o h l c v = 
     dayRaw
         (fromJust $ ymd $ d)
-        (fromJust $ nonNegativeInt $ o)
-        (fromJust $ nonNegativeInt $ h)
-        (fromJust $ nonNegativeInt $ l)
-        (fromJust $ nonNegativeInt $ c)
-        (fromJust $ nonNegativeInt $ v)
+        (fromJust $ nonNegativeCents $ o)
+        (fromJust $ nonNegativeCents $ h)
+        (fromJust $ nonNegativeCents $ l)
+        (fromJust $ nonNegativeCents $ c)
+        (fromJust $ nonNegativeCents $ v)
 
 -- Unsafe Stock constructor. Allows tests to be more succinct.
 unsafeStock :: String -> [Day] -> Stock
@@ -39,3 +39,6 @@ unsafeNonEmptyVector list =
 -- Unsafely extracts first 2 elements into a tuple
 first2 :: [a] -> (a, a)
 first2 arr = (arr !! 0, arr !! 1)
+
+unsafeCents :: Int -> NonNegativeCents
+unsafeCents i = fromJust $ nonNegativeCents i

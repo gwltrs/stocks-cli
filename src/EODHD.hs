@@ -48,7 +48,7 @@ parseSymbols :: ByteString -> Maybe (V.Vector String)
 parseSymbols bStr = bStr
     ^? _Array
     <<&>> (^? key "code" . _String)
-    <&> allOrNothing
+    <&> sequenceA
     & join
     <<&>> unpack
 
@@ -61,17 +61,17 @@ parseDays text =
                 <&> unpack 
                 <&> filter isDigit
                 >>= ymd)
-            <*> (v ^? key "open" . _Double <&> centsFromDollars >>= nonNegativeInt)
-            <*> (v ^? key "high" . _Double <&> centsFromDollars >>= nonNegativeInt)
-            <*> (v ^? key "low" . _Double <&> centsFromDollars >>= nonNegativeInt)
-            <*> (v ^? key "close" . _Double <&> centsFromDollars >>= nonNegativeInt)
-            <*> ((v ^? key "volume") >>= toInt >>= nonNegativeInt)
+            <*> (v ^? key "open" . _Double <&> centsFromDollars >>= nonNegativeCents)
+            <*> (v ^? key "high" . _Double <&> centsFromDollars >>= nonNegativeCents)
+            <*> (v ^? key "low" . _Double <&> centsFromDollars >>= nonNegativeCents)
+            <*> (v ^? key "close" . _Double <&> centsFromDollars >>= nonNegativeCents)
+            <*> ((v ^? key "volume") >>= toInt >>= nonNegativeCents)
             >>= day
     in
         text
             ^? _Array
             <<&>> parseDay
-            <&> allOrNothing
+            <&> sequenceA
             & join
 
 -- Tries to extract an Int from an Aeson.Value.

@@ -21,15 +21,15 @@ typesTests = do
             property
                $ forAll badYYYYMMDDStr 
                $ \s -> ((ymd s) <&> str) == Nothing
-    describe "Types.nonNegativeInt" $ do
-        it "should create NonNegativeInt when given valid integer" $ do
+    describe "Types.nonNegativeCents" $ do
+        it "should create NonNegativeCents when given valid integer" $ do
             property
                 $ forAll (choose (0, maxBound))
-                $ \i -> (i & nonNegativeInt <&> int) == Just i
+                $ \i -> (i & nonNegativeCents <&> int) == Just i
         it "should fail when given invalid integer" $ do
             property
                 $ forAll (choose (minBound, -1))
-                $ \i -> (i & nonNegativeInt <&> int) == Nothing
+                $ \i -> (i & nonNegativeCents <&> int) == Nothing
     describe "Types.day" $ do
         it "should create day when given valid inputs" $ do
             property
@@ -64,3 +64,9 @@ typesTests = do
             centsFromDollars 10.109 `shouldBe` 1011
             centsFromDollars 0.9999 `shouldBe` 100
             centsFromDollars 0.400001 `shouldBe` 40
+    describe "Types.dollars" $ do
+        it "should convert cents integer to dollars double" $ do
+            dollars (unsafeCents 0) `shouldBe` 0.0
+            dollars (unsafeCents 25) `shouldBe` 0.25
+            dollars (unsafeCents 100) `shouldBe` 1.0
+            dollars (unsafeCents 9999950) `shouldBe` 99999.5

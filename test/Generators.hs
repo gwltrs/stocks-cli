@@ -66,13 +66,13 @@ goodDayRaw = do
     open <- choose (0, 1) <&> shiftRange (0, 1) (low, high)
     close <- choose (0, 1) <&> shiftRange (0, 1) (low, high)
     date <- goodYYYYMMDDStr <&> ymd <&> fromJust
-    volume <- choose (0, maxBound) <&> nonNegativeInt <&> fromJust
+    volume <- choose (0, maxBound) <&> nonNegativeCents <&> fromJust
     pure DayRaw {
         date = date, 
-        open = fromJust $ nonNegativeInt $ centsFromDollars $ open, 
-        high = fromJust $ nonNegativeInt $ centsFromDollars$ high, 
-        low = fromJust $ nonNegativeInt $ centsFromDollars $ low, 
-        close = fromJust $ nonNegativeInt $ centsFromDollars $ close, 
+        open = fromJust $ nonNegativeCents $ centsFromDollars $ open, 
+        high = fromJust $ nonNegativeCents $ centsFromDollars$ high, 
+        low = fromJust $ nonNegativeCents $ centsFromDollars $ low, 
+        close = fromJust $ nonNegativeCents $ centsFromDollars $ close, 
         volume = volume }
 
 -- Produces values that should always be accepted by the Stock smart constructor.

@@ -5,8 +5,7 @@ module Types (
     Day, day, raw,
     DayRaw(..), dayRaw,
     YYYYMMDD, ymd, str,
-    NonNegativeInt, nonNegativeInt, int,
-    centsFromDollars,
+    NonNegativeCents, nonNegativeCents, int, dollars, centsFromDollars,
     IndyParsed(..),
     IndyFunc(..),
     Indicator(..)
@@ -76,21 +75,21 @@ newtype Day = Day DayRaw
 -- Open, high, low, close are stored as cents.
 data DayRaw = DayRaw {
     date :: !YYYYMMDD,
-    open :: {-# UNPACK #-} !NonNegativeInt,
-    high :: {-# UNPACK #-} !NonNegativeInt,
-    low :: {-# UNPACK #-} !NonNegativeInt,
-    close :: {-# UNPACK #-} !NonNegativeInt,
-    volume :: {-# UNPACK #-} !NonNegativeInt
+    open :: {-# UNPACK #-} !NonNegativeCents,
+    high :: {-# UNPACK #-} !NonNegativeCents,
+    low :: {-# UNPACK #-} !NonNegativeCents,
+    close :: {-# UNPACK #-} !NonNegativeCents,
+    volume :: {-# UNPACK #-} !NonNegativeCents
 } deriving (Eq, Show)
 
 -- Convenience constructor for DayRaw.
 dayRaw ::
     YYYYMMDD 
-    -> NonNegativeInt 
-    -> NonNegativeInt 
-    -> NonNegativeInt 
-    -> NonNegativeInt 
-    -> NonNegativeInt
+    -> NonNegativeCents 
+    -> NonNegativeCents 
+    -> NonNegativeCents 
+    -> NonNegativeCents 
+    -> NonNegativeCents
     -> DayRaw
 dayRaw d o h l c v = DayRaw {
     date = d, open = o, high = h, low = l, close = c, volume = v }
@@ -156,19 +155,23 @@ str :: YYYYMMDD -> String
 str (YYYYMMDD str) = str
 
 -- Int newtype that disallows negative values.
-newtype NonNegativeInt = NonNegativeInt Int 
+newtype NonNegativeCents = NonNegativeCents Int 
     deriving (Eq, Show, Ord)
 
--- Smart constructor for NonNegativeInt.
-nonNegativeInt :: Int -> Maybe NonNegativeInt
-nonNegativeInt i = 
+-- Smart constructor for NonNegativeCents.
+nonNegativeCents :: Int -> Maybe NonNegativeCents
+nonNegativeCents i = 
     if i >= 0 
-    then Just $! NonNegativeInt $! i  
+    then Just $! NonNegativeCents $! i  
     else Nothing 
 
--- Extracts Int from NonNegativeInt.
-int :: NonNegativeInt -> Int
-int (NonNegativeInt i) = i
+-- Extracts Int from NonNegativeCents.
+int :: NonNegativeCents -> Int
+int (NonNegativeCents i) = i
+
+-- Gets the dollar amount.
+dollars :: NonNegativeCents -> Double
+dollars (NonNegativeCents i) = (fromIntegral i) / 100.0
 
 -- Converts dollars as double to cents as an int.
 -- Rounds to the nearest cent.

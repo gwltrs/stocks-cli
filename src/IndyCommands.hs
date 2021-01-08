@@ -23,3 +23,8 @@ findLast ind stocks = stocks
                     V.last lastNSlice & raw & date)
             else
                 Nothing)
+
+-- Finds all historical buy picks with the given indicator.
+findAll :: Indicator -> V.Vector Stock -> V.Vector (String, YYYYMMDD, YYYYMMDD)
+findAll ind stocks =
+    undefined

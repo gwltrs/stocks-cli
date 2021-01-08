@@ -66,16 +66,16 @@ interpretStocksTokens tokens = tokens
             then
                 dayRaw
                     <$> (line V.! 0 &! unpack &! ymd)
-                    <*> (line V.! 1 &! parseIntMaybe >>= nonNegativeInt)
-                    <*> (line V.! 2 &! parseIntMaybe >>= nonNegativeInt)
-                    <*> (line V.! 3 &! parseIntMaybe >>= nonNegativeInt)
-                    <*> (line V.! 4 &! parseIntMaybe >>= nonNegativeInt)
-                    <*> (line V.! 5 &! parseIntMaybe >>= nonNegativeInt)
+                    <*> (line V.! 1 &! parseIntMaybe >>= nonNegativeCents)
+                    <*> (line V.! 2 &! parseIntMaybe >>= nonNegativeCents)
+                    <*> (line V.! 3 &! parseIntMaybe >>= nonNegativeCents)
+                    <*> (line V.! 4 &! parseIntMaybe >>= nonNegativeCents)
+                    <*> (line V.! 5 &! parseIntMaybe >>= nonNegativeCents)
                     >>= day
                     <&> Right
             else 
                 Nothing)
-    &! allOrNothing
+    &! sequenceA
 
 finalizeStockProperties :: V.Vector (Either Text Day) -> V.Vector Stock
 finalizeStockProperties props = props

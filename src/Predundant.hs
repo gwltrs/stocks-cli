@@ -7,17 +7,6 @@ import qualified Data.Vector as V
 import Data.Function ((&))
 import Data.Either.Combinators (rightToMaybe)
 
--- Returns array if all elements are Just.
--- Otherwise returns Nothing.
-allOrNothing :: V.Vector (Maybe a) -> Maybe (V.Vector a)
-allOrNothing arr =
-    let 
-        filtered = V.mapMaybe id arr
-    in 
-        if V.length filtered == V.length arr 
-        then Just filtered
-        else Nothing
-
 -- Returns the last n elements of the give vector.
 -- Will return the vector unchanged if length <= n.
 lastN :: Int -> V.Vector a -> V.Vector a
