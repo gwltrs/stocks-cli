@@ -34,6 +34,14 @@ unsafeStock :: String -> [Day] -> Stock
 unsafeStock symbol days = 
     fromJust $ stock symbol (NEV.unsafeFromList $ days)
 
+-- Unsafe Stock constructor that creates a dummy stock from only the last date.
+-- Allows tests to be more succinct.
+unsafeStockDates :: String -> [String] -> Stock
+unsafeStockDates symbol dates = 
+    fromJust $ stock
+        symbol
+        (dates <&> (\dtStr -> unsafeDay dtStr 2 3 1 2 1) & unsafeNonEmptyVector)
+
 -- Unsafe YYYYMMDD constructor. Allows tests to be more succinct.
 unsafeYMD :: String -> YYYYMMDD
 unsafeYMD s = fromJust $ ymd $ s
