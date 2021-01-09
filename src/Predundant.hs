@@ -70,3 +70,15 @@ toEither _ (Just a) = Right a
 -- Constructor for 2-value tuple.
 pair :: a -> b -> (a, b)
 pair a b = (a, b)
+
+-- Generates all possible contiguous slices of length N for the given vector.
+slicesOf :: Int -> V.Vector a -> V.Vector (V.Vector a)
+slicesOf n vec = 
+    if n < 1 || n > V.length vec then
+        V.empty
+    else
+        V.generate (V.length vec - n + 1) (\i -> V.slice i n vec)
+
+-- Converts a doubly-nested list to a doubly-nested vector.
+fromNestedList :: [[a]] -> V.Vector (V.Vector a)
+fromNestedList l = l & V.fromList <&> V.fromList

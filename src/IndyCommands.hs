@@ -26,5 +26,13 @@ findLast ind stocks = stocks
 
 -- Finds all historical buy picks with the given indicator.
 findAll :: Indicator -> V.Vector Stock -> V.Vector (String, YYYYMMDD, YYYYMMDD)
-findAll ind stocks =
-    undefined
+findAll ind stocks = stocks
+    & V.concatMap (\s -> 
+        days s
+            & NEV.toVector 
+            & slicesOf (lookBehind ind)
+            & V.filter (shouldBuy ind)
+            <&> (\ds -> (
+                symbol s, 
+                V.head ds & raw & date,
+                V.last ds & raw & date)))

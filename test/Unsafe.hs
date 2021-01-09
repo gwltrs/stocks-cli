@@ -4,8 +4,14 @@ module Unsafe where
 import Data.Maybe (fromJust)
 import qualified Data.Vector as V
 import qualified Data.Vector.NonEmpty as NEV
+import Data.Either.Combinators (fromRight')
+import Data.Function ((&))
+import Data.Functor ((<&>))
 
 import Types
+import IndyParsing (parseIndy)
+import IndyComposing (composeIndy)
+import IndyFunctions (allIndyFuncs)
 
 -- Unsafe Day constructor. Allows tests to be more succinct.
 unsafeDay :: String -> Int -> Int -> Int -> Int -> Int -> Day
@@ -44,3 +50,10 @@ first2 arr = (arr !! 0, arr !! 1)
 -- Unsafe NonNegativeCents constructor. Allows tests to be more succinct.
 unsafeCents :: Int -> NonNegativeCents
 unsafeCents i = fromJust $ nonNegativeCents i
+
+-- Unsafe Indicator constructor. Allows tests to be more succinct.
+unsafeIndy :: String -> Indicator
+unsafeIndy indyStr = parseIndy indyStr
+    & fromRight'
+    & composeIndy (allIndyFuncs <&> fst)
+    & fromRight'
