@@ -40,8 +40,8 @@ findAll ind stocks = stocks
 
 -- Removes the stock if the last date is earlier than the supplied date.
 -- Otherwise keeps the stock and truncates dates that are after the supplied date.
-sanitizeStockDates :: YYYYMMDD -> Stock -> Maybe Stock
-sanitizeStockDates d s =
+sanitizeDates :: YYYYMMDD -> Stock -> Maybe Stock
+sanitizeDates d s =
     -- This search O(n) but could be O(log(n)) since the dates are sorted.
     case NEV.findIndex (raw >>> date >>> (== d)) (days s) of
         Just i -> days s 
@@ -49,3 +49,10 @@ sanitizeStockDates d s =
             & NEV.fromVector
             >>= stock (symbol s)
         Nothing -> Nothing
+
+-- First determines the "proper sequence" of dates by looking at each stock
+-- and counting which date most often follows the previous date. Stocks are
+-- split on missing-date gaps in the sequence. Extra dates that are between
+-- the proper sequence are removed.
+contiguousDates :: V.Vector Stock -> V.Vector Stock
+contiguousDates stocks = undefined

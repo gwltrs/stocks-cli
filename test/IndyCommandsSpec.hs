@@ -6,6 +6,8 @@ import Test.Hspec
 import Test.QuickCheck
 import qualified Data.Vector as V
 import Data.Function ((&))
+import Data.Char (intToDigit)
+import Data.Functor ((<&>))
 
 import Types
 import IndyCommands
@@ -49,54 +51,125 @@ indyCommandsTests = do
                         ("F", unsafeYMD "20190729", unsafeYMD "20191218")]
     describe "IndyCommands.sanitizeStockDates" $ do
         it "sanitizes new stocks, removes old stocks" $ do
-            sanitizeStockDates 
+            sanitizeDates 
                 (unsafeYMD "20200101") 
                 (unsafeStockDates "A" ["20191231"])
                     `shouldBe` Nothing
-            sanitizeStockDates 
+            sanitizeDates 
                 (unsafeYMD "20200101")
                 (unsafeStockDates "B" ["20200101"])
                     `shouldBe` Just (unsafeStockDates "B" ["20200101"])
-            sanitizeStockDates
+            sanitizeDates
                 (unsafeYMD "20200101")
                 (unsafeStockDates "C" ["20200102"])
                     `shouldBe` Nothing
-            sanitizeStockDates 
+            sanitizeDates 
                 (unsafeYMD "20200101") 
                 (unsafeStockDates "D" ["20191230", "20191231"])
                     `shouldBe` Nothing
-            sanitizeStockDates 
+            sanitizeDates 
                 (unsafeYMD "20200101") 
                 (unsafeStockDates "E" ["20191231", "20200101"])
                     `shouldBe` Just (unsafeStockDates "E" ["20191231", "20200101"])
-            sanitizeStockDates 
+            sanitizeDates 
                 (unsafeYMD "20200101") 
                 (unsafeStockDates "F" ["20200101", "20200102"])
                     `shouldBe` Just (unsafeStockDates "F" ["20200101"])
-            sanitizeStockDates 
+            sanitizeDates 
                 (unsafeYMD "20200101") 
                 (unsafeStockDates "G" ["20200102", "20200103"])
                     `shouldBe` Nothing
-            sanitizeStockDates 
+            sanitizeDates 
                 (unsafeYMD "20200101") 
                 (unsafeStockDates "H" ["20191229", "20191230", "20191231"])
                     `shouldBe` Nothing
-            sanitizeStockDates 
+            sanitizeDates 
                 (unsafeYMD "20200101") 
                 (unsafeStockDates "I" ["20191230", "20191231", "20200101"])
                     `shouldBe` Just (unsafeStockDates "I" ["20191230", "20191231", "20200101"])
-            sanitizeStockDates 
+            sanitizeDates 
                 (unsafeYMD "20200101") 
                 (unsafeStockDates "J" ["20191231", "20200101", "20200102"])
                     `shouldBe` Just (unsafeStockDates "J" ["20191231", "20200101"])
-            sanitizeStockDates 
+            sanitizeDates 
                 (unsafeYMD "20200101") 
                 (unsafeStockDates "K" ["20200101", "20200102", "20200103"])
                     `shouldBe` Just (unsafeStockDates "K" ["20200101"])
-            sanitizeStockDates 
+            sanitizeDates 
                 (unsafeYMD "20200101") 
                 (unsafeStockDates "K" ["20200102", "20200103", "20200104"])
                     `shouldBe` Nothing
+    describe "IndyCommands.contiguousDates" $ do
+        it "splits stocks on date gaps and filters extra dates" $ do
+            -- These first tests are asserting that there are no changes.
+            contiguousDates [] `shouldBe` []
+            contiguousDates [
+                unsafeStockDates "A" ["20200101"]] 
+                    `shouldBe` [
+                        unsafeStockDates "A" ["20200101"]]
+            contiguousDates [
+                unsafeStockDates "B" ["20200101", "20200104"]] 
+                    `shouldBe` [
+                        unsafeStockDates "B" ["20200101", "20200104"]]
+            contiguousDates [
+                unsafeStockDates "C" ["20191232", "20200101", "20200104", "20200105", "20200106"],
+                unsafeStockDates "E" ["20200101", "20200104", "20200105", "20200106"],
+                unsafeStockDates "D" ["20200101", "20200104", "20200105", "20200106", "20200107"]] 
+                    `shouldBe` [
+                        unsafeStockDates "C" ["20191232", "20200101", "20200104", "20200105", "20200106"],
+                        unsafeStockDates "E" ["20200101", "20200104", "20200105", "20200106"],
+                        unsafeStockDates "D" ["20200101", "20200104", "20200105", "20200106", "20200107"]]
+            -- E is missing 01/04/2020 now and so should be split at that point.
+            contiguousDates [
+                unsafeStockDates "C" ["20191232", "20200101", "20200104", "20200105", "20200106"],
+                unsafeStockDates "E" ["20200101", "20200105", "20200106"],
+                unsafeStockDates "D" ["20200101", "20200104", "20200105", "20200106", "20200107"]] 
+                    `shouldBe` [
+                        unsafeStockDates "C" ["20191232", "20200101", "20200104", "20200105", "20200106"],
+                        unsafeStockDates "E" ["20200101"],
+                        unsafeStockDates "E" ["20200105", "20200106"],
+                        unsafeStockDates "D" ["20200101", "20200104", "20200105", "20200106", "20200107"]]  
+            -- Extra dates should only be removed if they
+            -- aren't the first or last date in a stock.
+            -- Thus all odds except 1 and 9 should be removed.
+            contiguousDates [
+                unsafeStockDates "W" ([1, 2, 3, 4, 6, 7, 8] <&> d),
+                unsafeStockDates "X" ([2, 4, 5, 6, 8] <&> d),
+                unsafeStockDates "Y" ([2, 4, 6, 7, 8] <&> d),
+                unsafeStockDates "Z" ([2, 4, 6, 8, 9] <&> d)]
+                    `shouldBe` [
+                        unsafeStockDates "W" ([1, 2, 4, 6, 8] <&> d),
+                        unsafeStockDates "X" ([2, 4, 6, 8] <&> d),
+                        unsafeStockDates "Y" ([2, 4, 6, 8] <&> d),
+                        unsafeStockDates "Z" ([2, 4, 6, 8, 9] <&> d)]
+            -- W and Z should get split.
+            contiguousDates [
+                unsafeStockDates "W" ([2, 6, 8] <&> d),
+                unsafeStockDates "X" ([2, 4, 6, 8] <&> d),
+                unsafeStockDates "Y" ([2, 4, 6, 8] <&> d),
+                unsafeStockDates "Z" ([2, 4, 8] <&> d)] 
+                    `shouldBe` [
+                        unsafeStockDates "W" ([2] <&> d),
+                        unsafeStockDates "W" ([6, 8] <&> d),
+                        unsafeStockDates "X" ([2, 4, 6, 8] <&> d),
+                        unsafeStockDates "Y" ([2, 4, 6, 8] <&> d),
+                        unsafeStockDates "Z" ([2, 4] <&> d),
+                        unsafeStockDates "Z" ([8] <&> d)]
+            -- Testing gap-splitting and extra-filtering together
+            contiguousDates [
+                unsafeStockDates "W" ([1, 2, 4, 6, 8] <&> d),
+                unsafeStockDates "X" ([2, 3, 4, 6, 8] <&> d),
+                unsafeStockDates "Y" ([2, 4, 5, 8] <&> d),
+                unsafeStockDates "Z" ([2, 5, 6, 7, 8, 9] <&> d)] 
+                    `shouldBe` [
+                        unsafeStockDates "W" ([1, 2, 4, 6, 8] <&> d),
+                        unsafeStockDates "X" ([2, 4, 6, 8] <&> d),
+                        unsafeStockDates "Y" ([2, 4] <&> d),
+                        unsafeStockDates "Y" ([8] <&> d),
+                        unsafeStockDates "Z" ([2] <&> d),
+                        unsafeStockDates "Z" ([6, 8, 9] <&> d)] 
+            
+            
 
 -- Creates an indicator that signals a buy based on 2 days.
 indLast2Days :: (DayRaw -> DayRaw -> Bool) -> Indicator
@@ -104,3 +177,10 @@ indLast2Days lookAtLast2Days =
     Indicator {
         lookBehind = 2,
         shouldBuy = (\days -> lookAtLast2Days (days V.! 0 & raw) (days V.! 1 & raw))}
+
+-- Date-from-int. Creates a YYYYMMDD string from 1-9.
+-- Allows the tests to be a little less verbose.
+d :: Int -> String
+d i = 
+    let c = intToDigit i
+    in [c, c, c, c, '0', c , '0', c]
